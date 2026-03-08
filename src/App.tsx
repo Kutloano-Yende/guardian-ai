@@ -22,6 +22,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/performance" element={<ProtectedPage><PerformancePage /></ProtectedPage>} />
               <Route path="/documents" element={<ProtectedPage><DocumentsPage /></ProtectedPage>} />
               <Route path="/training" element={<ProtectedPage><TrainingPage /></ProtectedPage>} />
+              <Route path="/admin" element={<ProtectedPage><AdminPage /></ProtectedPage>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Box, AlertTriangle, FileWarning, ClipboardCheck,
   Shield, Scale, ListTodo, BarChart3, FileText, GraduationCap,
-  ChevronLeft, ChevronRight, Bell, User, LogOut, ChevronDown
+  ChevronLeft, ChevronRight, Bell, User, LogOut, ChevronDown, Settings
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-provider";
 import {
@@ -36,13 +36,14 @@ const navItems = [
   { path: "/performance", label: "Performance", icon: BarChart3 },
   { path: "/documents", label: "Documents", icon: FileText },
   { path: "/training", label: "Training", icon: GraduationCap },
-];
+  { path: "/admin", label: "Admin Panel", icon: Settings, adminOnly: true },
+] as const;
 
 export function GRCLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, profile, roles, signOut } = useAuth();
+  const { user, profile, roles, signOut, hasRole } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -89,7 +90,7 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => {
+          {navItems.filter((item) => !('adminOnly' in item && item.adminOnly) || hasRole("admin")).map((item) => {
             const active = location.pathname === item.path;
             return (
               <Link
