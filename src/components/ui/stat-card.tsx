@@ -11,11 +11,11 @@ interface StatCardProps {
 
 export function StatCard({ title, value, subtitle, icon: Icon, color = "primary" }: StatCardProps) {
   const colorMap: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
-    secondary: "bg-secondary/10 text-secondary",
-    destructive: "bg-destructive/10 text-destructive",
-    "severity-high": "bg-severity-high/10 text-severity-high",
-    "severity-medium": "bg-severity-medium/10 text-severity-medium",
+    primary: "text-primary",
+    secondary: "text-secondary",
+    destructive: "text-destructive",
+    "severity-high": "text-severity-high",
+    "severity-medium": "text-severity-medium",
   };
 
   return (
@@ -26,8 +26,11 @@ export function StatCard({ title, value, subtitle, icon: Icon, color = "primary"
           <p className="text-2xl font-display font-bold mt-1 text-foreground">{value}</p>
           {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
         </div>
-        <div className={`p-2.5 rounded-xl ${colorMap[color]}`}>
-          <Icon className="w-5 h-5" />
+        <div
+          className="p-2.5 rounded-xl"
+          style={{ background: "rgba(255,255,255,0.25)", backdropFilter: "blur(8px)" }}
+        >
+          <Icon className={`w-5 h-5 ${colorMap[color]}`} />
         </div>
       </div>
     </div>
