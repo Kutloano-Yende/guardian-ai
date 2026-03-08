@@ -186,12 +186,12 @@
   }
 
   /* ── Glass Dialog Form Styling ── */
-  [data-radix-dialog-content] > * > * > label,
-  [data-radix-dialog-content] > * > * > div > label,
-  [data-radix-dialog-content] > * > * > div > div > label {
+  [data-radix-dialog-content] {
+    --muted-foreground: 0 0% 95%;
+  }
+  
+  [data-radix-dialog-content] > * > * {
     color: white !important;
-    font-size: 0.75rem !important;
-    font-weight: 600 !important;
   }
 
   [data-radix-dialog-content] input,
