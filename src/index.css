@@ -136,7 +136,8 @@
     transition: all 0.2s ease;
   }
   .glass-card:hover {
-    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15);
+    border-color: rgba(255, 255, 255, 0.30);
   }
 
   .grc-card {
