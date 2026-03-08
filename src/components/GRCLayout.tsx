@@ -36,7 +36,8 @@ const navItems = [
   { path: "/performance", label: "Performance", icon: BarChart3 },
   { path: "/documents", label: "Documents", icon: FileText },
   { path: "/training", label: "Training", icon: GraduationCap },
-];
+  { path: "/admin", label: "Admin Panel", icon: Settings, adminOnly: true },
+] as const;
 
 export function GRCLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
