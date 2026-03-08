@@ -187,21 +187,25 @@
 
   /* ── Glass Dialog Form Styling ── */
   [data-radix-dialog-content] label,
-  [data-radix-dialog-content] .text-sm.font-medium {
-    @apply text-white/90 text-xs font-semibold tracking-wide !important;
+  [data-radix-dialog-content] .text-sm.font-medium,
+  [data-radix-dialog-content] > div > div > div:first-of-type {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.025em !important;
   }
 
   [data-radix-dialog-content] input,
   [data-radix-dialog-content] textarea {
     background: rgba(255, 255, 255, 0.08) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    color: white !important;
+    color: rgba(0, 0, 0, 0.8) !important;
     border-radius: 0.75rem;
     backdrop-filter: blur(8px);
   }
   [data-radix-dialog-content] input::placeholder,
   [data-radix-dialog-content] textarea::placeholder {
-    color: rgba(255, 255, 255, 0.4) !important;
+    color: rgba(0, 0, 0, 0.4) !important;
   }
   [data-radix-dialog-content] input:focus,
   [data-radix-dialog-content] textarea:focus {
