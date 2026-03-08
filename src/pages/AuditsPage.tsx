@@ -30,7 +30,7 @@ export default function AuditsPage() {
           <p className="text-muted-foreground mt-1">Plan, execute, and record audits</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Schedule Audit</Button></DialogTrigger>
+          <DialogTrigger asChild><Button className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Schedule Audit</Button></DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle className="font-display">New Audit</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -43,14 +43,14 @@ export default function AuditsPage() {
                 <div><Label>End Date</Label><Input type="date" required value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
               </div>
               <div><Label>Findings / Notes</Label><Textarea value={form.findings} onChange={(e) => setForm({ ...form, findings: e.target.value })} /></div>
-              <Button type="submit" className="w-full">Create Audit</Button>
+              <button type="submit" className="glass-btn-primary">Create Audit</button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
       {data.audits.length === 0 ? (
-        <div className="grc-card p-12 text-center">
+        <div className="glass-card p-12 text-center">
           <ClipboardCheck className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="font-display font-semibold text-foreground">No audits scheduled</h3>
           <p className="text-muted-foreground text-sm mt-1">Schedule your first audit to begin tracking compliance</p>
@@ -58,7 +58,7 @@ export default function AuditsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {data.audits.map((a) => (
-            <div key={a.id} className="grc-card p-5">
+            <div key={a.id} className="glass-card p-5">
               <div className="flex items-start justify-between mb-3">
                 <h3 className="font-display font-semibold text-foreground text-sm">{a.name}</h3>
                 <span className={`text-xs font-semibold capitalize ${statusColors[a.status]}`}>{a.status}</span>

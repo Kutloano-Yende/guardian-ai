@@ -30,7 +30,7 @@ export default function PerformancePage() {
           <p className="text-muted-foreground mt-1">Monitor KPIs, targets, and operational efficiency</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Add KPI</Button></DialogTrigger>
+          <DialogTrigger asChild><Button className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add KPI</Button></DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle className="font-display">New KPI</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -43,14 +43,14 @@ export default function PerformancePage() {
                 <div><Label>Responsible</Label><Input required value={form.responsible} onChange={(e) => setForm({ ...form, responsible: e.target.value })} /></div>
                 <div><Label>Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as PerformanceKPI["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="on_track">On Track</SelectItem><SelectItem value="at_risk">At Risk</SelectItem><SelectItem value="off_track">Off Track</SelectItem></SelectContent></Select></div>
               </div>
-              <Button type="submit" className="w-full">Add KPI</Button>
+              <button type="submit" className="glass-btn-primary">Add KPI</button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
       {data.performance.length === 0 ? (
-        <div className="grc-card p-12 text-center">
+        <div className="glass-card p-12 text-center">
           <BarChart3 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="font-display font-semibold text-foreground">No KPIs tracked</h3>
           <p className="text-muted-foreground text-sm mt-1">Add KPIs to monitor organizational performance</p>
@@ -60,7 +60,7 @@ export default function PerformancePage() {
           {data.performance.map((kpi) => {
             const pct = kpi.target > 0 ? Math.min((kpi.actual / kpi.target) * 100, 100) : 0;
             return (
-              <div key={kpi.id} className="grc-card p-5">
+              <div key={kpi.id} className="glass-card p-5">
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="font-display font-semibold text-foreground text-sm">{kpi.name}</h3>
                   <span className={`text-xs font-semibold capitalize ${statusColors[kpi.status]}`}>{kpi.status.replace("_", " ")}</span>

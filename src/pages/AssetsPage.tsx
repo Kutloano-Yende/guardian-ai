@@ -28,9 +28,7 @@ export default function AssetsPage() {
           <p className="text-muted-foreground mt-1">Track and manage all company assets</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="w-4 h-4 mr-2" /> Add Asset</Button>
-          </DialogTrigger>
+          <DialogTrigger asChild><Button className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add Asset</Button></DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle className="font-display">New Asset</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -42,25 +40,25 @@ export default function AssetsPage() {
                 <div><Label>Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
                 <div><Label>Criticality</Label><Select value={form.criticality} onValueChange={(v) => setForm({ ...form, criticality: v as Asset["criticality"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
               </div>
-              <Button type="submit" className="w-full">Create Asset</Button>
+              <button type="submit" className="glass-btn-primary">Create Asset</button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
       {data.assets.length === 0 ? (
-        <div className="grc-card p-12 text-center">
+        <div className="glass-card p-12 text-center">
           <Box className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="font-display font-semibold text-foreground">No assets yet</h3>
           <p className="text-muted-foreground text-sm mt-1">Start by adding your first asset to track</p>
         </div>
       ) : (
-        <div className="grc-card overflow-hidden">
-          <table className="w-full">
-            <thead><tr className="border-b bg-muted/50"><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Name</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Department</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Owner</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Criticality</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
+        <div className="glass-card overflow-hidden">
+          <table className="w-full glass-table">
+            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Name</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Department</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Owner</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Criticality</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
             <tbody>
               {data.assets.map((a) => (
-                <tr key={a.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                <tr key={a.id} className="border-b last:border-0 transition-colors" style={{ borderColor: "var(--glass-border)" }}>
                   <td className="px-4 py-3 text-sm font-medium text-foreground">{a.name}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground capitalize">{a.type.replace("_", " ")}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{a.department}</td>

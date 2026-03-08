@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useGRC, Incident } from "@/lib/grc-store";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SeverityBadge, StatusBadge } from "@/components/ui/severity-badge";
 import { Plus, FileWarning } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const incidentTypes = ["Data Breach", "Equipment Failure", "Safety Violation", "Policy Violation", "System Outage", "Environmental", "Fraud", "Other"];
 
@@ -35,7 +35,7 @@ export default function IncidentsPage() {
           <p className="text-muted-foreground mt-1">Capture, track, and resolve incidents in real-time</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Report Incident</Button></DialogTrigger>
+          <DialogTrigger asChild><Button className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Report Incident</Button></DialogTrigger>
           <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
             <DialogHeader><DialogTitle className="font-display">Report Incident</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -52,25 +52,25 @@ export default function IncidentsPage() {
               </div>
               <div><Label>Regulatory Impact</Label><Input placeholder="e.g., POPIA violation, possible fine R50,000" value={form.regulatoryImpact} onChange={(e) => setForm({ ...form, regulatoryImpact: e.target.value })} /></div>
               <div><Label>Description</Label><Textarea required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-              <Button type="submit" className="w-full">Submit Incident</Button>
+              <button type="submit" className="glass-btn-primary">Submit Incident</button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
       {data.incidents.length === 0 ? (
-        <div className="grc-card p-12 text-center">
+        <div className="glass-card p-12 text-center">
           <FileWarning className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="font-display font-semibold text-foreground">No incidents reported</h3>
           <p className="text-muted-foreground text-sm mt-1">Report incidents as they occur to track and resolve them</p>
         </div>
       ) : (
-        <div className="grc-card overflow-hidden">
-          <table className="w-full">
-            <thead><tr className="border-b bg-muted/50"><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Incident</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Severity</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Assigned To</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Deadline</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
+        <div className="glass-card overflow-hidden">
+          <table className="w-full glass-table">
+            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Incident</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Severity</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Assigned To</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Deadline</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
             <tbody>
               {data.incidents.map((inc) => (
-                <tr key={inc.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                <tr key={inc.id} className="border-b last:border-0 transition-colors" style={{ borderColor: "var(--glass-border)" }}>
                   <td className="px-4 py-3"><p className="text-sm font-medium text-foreground">{inc.name}</p><p className="text-xs text-muted-foreground">{inc.department}</p></td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{inc.type}</td>
                   <td className="px-4 py-3"><SeverityBadge severity={inc.severity} /></td>

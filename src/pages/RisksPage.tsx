@@ -29,7 +29,7 @@ export default function RisksPage() {
           <p className="text-muted-foreground mt-1">Identify, assess, and monitor risks</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Add Risk</Button></DialogTrigger>
+          <DialogTrigger asChild><Button className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add Risk</Button></DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle className="font-display">New Risk</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -43,25 +43,25 @@ export default function RisksPage() {
               </div>
               <div><Label>Mitigation Strategy</Label><Textarea value={form.mitigationStrategy} onChange={(e) => setForm({ ...form, mitigationStrategy: e.target.value })} /></div>
               <div><Label>Regulatory Reference</Label><Input placeholder="e.g., POPIA Section 19" value={form.regulatoryRef} onChange={(e) => setForm({ ...form, regulatoryRef: e.target.value })} /></div>
-              <Button type="submit" className="w-full">Create Risk</Button>
+              <button type="submit" className="glass-btn-primary">Create Risk</button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
       {data.risks.length === 0 ? (
-        <div className="grc-card p-12 text-center">
+        <div className="glass-card p-12 text-center">
           <AlertTriangle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="font-display font-semibold text-foreground">No risks registered</h3>
           <p className="text-muted-foreground text-sm mt-1">Start by identifying and registering risks</p>
         </div>
       ) : (
-        <div className="grc-card overflow-hidden">
-          <table className="w-full">
-            <thead><tr className="border-b bg-muted/50"><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Risk</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Score</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Owner</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Regulation</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
+        <div className="glass-card overflow-hidden">
+          <table className="w-full glass-table">
+            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Risk</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Score</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Owner</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Regulation</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
             <tbody>
               {data.risks.map((r) => (
-                <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                <tr key={r.id} className="border-b last:border-0 transition-colors" style={{ borderColor: "var(--glass-border)" }}>
                   <td className="px-4 py-3 text-sm font-medium text-foreground">{r.name}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground capitalize">{r.type}</td>
                   <td className="px-4 py-3"><span className={`text-sm font-bold ${r.probability * r.impact >= 15 ? "text-severity-critical" : r.probability * r.impact >= 10 ? "text-severity-high" : "text-severity-medium"}`}>{r.probability * r.impact}</span></td>

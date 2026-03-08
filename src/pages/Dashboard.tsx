@@ -22,7 +22,6 @@ export default function Dashboard() {
         <p className="text-muted-foreground mt-1">Here's your GRC overview for today</p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Assets" value={data.assets.length} icon={Box} color="primary" subtitle="Tracked & managed" />
         <StatCard title="Open Risks" value={data.risks.filter((r) => r.status === "open").length} icon={AlertTriangle} color="severity-high" subtitle={`${criticalRisks.length} critical`} />
@@ -30,7 +29,6 @@ export default function Dashboard() {
         <StatCard title="Compliance Score" value={data.compliance.length ? `${Math.round(((data.compliance.length - nonCompliant.length) / data.compliance.length) * 100)}%` : "N/A"} icon={Shield} color="secondary" subtitle={`${nonCompliant.length} non-compliant`} />
       </div>
 
-      {/* Secondary Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Pending Audits" value={data.audits.filter((a) => a.status === "planned").length} icon={ClipboardCheck} color="primary" />
         <StatCard title="Overdue Actions" value={overdueActions.length} icon={ListTodo} color="severity-high" />
@@ -38,10 +36,8 @@ export default function Dashboard() {
         <StatCard title="At-Risk KPIs" value={data.performance.filter((p) => p.status === "at_risk" || p.status === "off_track").length} icon={TrendingUp} color="severity-medium" />
       </div>
 
-      {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Incidents */}
-        <div className="grc-card p-5">
+        <div className="glass-card p-5">
           <h3 className="font-display font-semibold text-foreground mb-4 flex items-center gap-2">
             <FileWarning className="w-4 h-4 text-destructive" /> Recent Incidents
           </h3>
@@ -50,7 +46,7 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-3">
               {data.incidents.slice(-5).reverse().map((inc) => (
-                <div key={inc.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div key={inc.id} className="flex items-center justify-between p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.2)" }}>
                   <div>
                     <p className="text-sm font-medium text-foreground">{inc.name}</p>
                     <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -67,8 +63,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Active Risks */}
-        <div className="grc-card p-5">
+        <div className="glass-card p-5">
           <h3 className="font-display font-semibold text-foreground mb-4 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-severity-high" /> Top Risks
           </h3>
@@ -77,7 +72,7 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-3">
               {data.risks.sort((a, b) => b.probability * b.impact - a.probability * a.impact).slice(0, 5).map((risk) => (
-                <div key={risk.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div key={risk.id} className="flex items-center justify-between p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.2)" }}>
                   <div>
                     <p className="text-sm font-medium text-foreground">{risk.name}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">Score: {risk.probability * risk.impact} ({risk.type})</p>
