@@ -186,9 +186,11 @@
   }
 
   /* ── Glass Dialog Form Styling ── */
+  [data-radix-dialog-content] [role="presentation"] + label,
   [data-radix-dialog-content] .LabelText,
-  [data-radix-dialog-content] label {
-    color: rgba(255, 255, 255, 0.9) !important;
+  [data-radix-dialog-content] label,
+  [data-radix-dialog-content] .text-sm {
+    color: white !important;
     font-size: 0.75rem !important;
     font-weight: 600 !important;
   }
