@@ -186,9 +186,9 @@
   }
 
   /* ── Glass Dialog Form Styling ── */
-  [data-radix-dialog-content] .space-y-4 label,
-  [data-radix-dialog-content] .space-y-4 .text-sm.font-medium {
-    @apply text-white/80 text-xs font-semibold tracking-wide;
+  [data-radix-dialog-content] label,
+  [data-radix-dialog-content] .text-sm.font-medium {
+    @apply text-white/90 text-xs font-semibold tracking-wide !important;
   }
 
   [data-radix-dialog-content] input,
