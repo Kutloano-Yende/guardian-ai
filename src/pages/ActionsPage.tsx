@@ -62,15 +62,15 @@ export default function ActionsPage() {
             <DialogHeader><DialogTitle className="font-display">New Action Item</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div><Label>Action Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label>Priority</Label><Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v as ActionItem["priority"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
-                <div><Label>Related To</Label><Select value={form.relatedType} onValueChange={(v) => setForm({ ...form, relatedType: v as ActionItem["relatedType"], relatedId: "" })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="incident">Incident</SelectItem><SelectItem value="risk">Risk</SelectItem><SelectItem value="audit">Audit</SelectItem></SelectContent></Select></div>
-                <div><Label>Linked Item</Label><Select value={form.relatedId} onValueChange={(v) => setForm({ ...form, relatedId: v })}><SelectTrigger><SelectValue placeholder="Select item" /></SelectTrigger><SelectContent>{relatedOptions.map((o: any) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent></Select></div>
-                <div><Label>Assigned To</Label><Input required value={form.assignedTo} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })} /></div>
-                <div><Label>Due Date</Label><Input type="date" required value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></div>
+                <div><Label className="text-white">Action Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+                <div><Label className="text-white">Priority</Label><Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v as ActionItem["priority"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
+                <div><Label className="text-white">Related To</Label><Select value={form.relatedType} onValueChange={(v) => setForm({ ...form, relatedType: v as ActionItem["relatedType"], relatedId: "" })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="incident">Incident</SelectItem><SelectItem value="risk">Risk</SelectItem><SelectItem value="audit">Audit</SelectItem></SelectContent></Select></div>
+                <div><Label className="text-white">Linked Item</Label><Select value={form.relatedId} onValueChange={(v) => setForm({ ...form, relatedId: v })}><SelectTrigger><SelectValue placeholder="Select item" /></SelectTrigger><SelectContent>{relatedOptions.map((o: any) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent></Select></div>
+                <div><Label className="text-white">Assigned To</Label><Input required value={form.assignedTo} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })} /></div>
+                <div><Label className="text-white">Due Date</Label><Input type="date" required value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></div>
               </div>
-              <div><Label>Impact of Delay</Label><Input placeholder="e.g., R50,000 fine, POPIA breach" value={form.estimatedImpactOfDelay} onChange={(e) => setForm({ ...form, estimatedImpactOfDelay: e.target.value })} /></div>
-              <div><Label>Notes</Label><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+              <div><Label className="text-white">Impact of Delay</Label><Input placeholder="e.g., R50,000 fine, POPIA breach" value={form.estimatedImpactOfDelay} onChange={(e) => setForm({ ...form, estimatedImpactOfDelay: e.target.value })} /></div>
+              <div><Label className="text-white">Notes</Label><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
               <button type="submit" className="glass-btn-primary">Create Action</button>
             </form>
           </DialogContent>

@@ -60,13 +60,13 @@ export default function PerformancePage() {
             <DialogHeader><DialogTitle className="font-display">New KPI</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div><Label>KPI Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label>Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
-                <div><Label>Target</Label><Input type="number" required value={form.target} onChange={(e) => setForm({ ...form, target: +e.target.value })} /></div>
-                <div><Label>Actual</Label><Input type="number" required value={form.actual} onChange={(e) => setForm({ ...form, actual: +e.target.value })} /></div>
-                <div><Label>Unit</Label><Input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></div>
-                <div><Label>Responsible</Label><Input required value={form.responsible} onChange={(e) => setForm({ ...form, responsible: e.target.value })} /></div>
-                <div><Label>Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as PerformanceKPI["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="on_track">On Track</SelectItem><SelectItem value="at_risk">At Risk</SelectItem><SelectItem value="off_track">Off Track</SelectItem></SelectContent></Select></div>
+                <div><Label className="text-white">KPI Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+                <div><Label className="text-white">Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
+                <div><Label className="text-white">Target</Label><Input type="number" required value={form.target} onChange={(e) => setForm({ ...form, target: +e.target.value })} /></div>
+                <div><Label className="text-white">Actual</Label><Input type="number" required value={form.actual} onChange={(e) => setForm({ ...form, actual: +e.target.value })} /></div>
+                <div><Label className="text-white">Unit</Label><Input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></div>
+                <div><Label className="text-white">Responsible</Label><Input required value={form.responsible} onChange={(e) => setForm({ ...form, responsible: e.target.value })} /></div>
+                <div><Label className="text-white">Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as PerformanceKPI["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="on_track">On Track</SelectItem><SelectItem value="at_risk">At Risk</SelectItem><SelectItem value="off_track">Off Track</SelectItem></SelectContent></Select></div>
               </div>
               <button type="submit" className="glass-btn-primary">Add KPI</button>
             </form>
