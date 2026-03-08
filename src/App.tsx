@@ -16,6 +16,7 @@ import ActionsPage from "./pages/ActionsPage";
 import PerformancePage from "./pages/PerformancePage";
 import DocumentsPage from "./pages/DocumentsPage";
 import TrainingPage from "./pages/TrainingPage";
+import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,22 +28,21 @@ const App = () => (
       <Sonner />
       <GRCProvider>
         <BrowserRouter>
-          <GRCLayout>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/assets" element={<AssetsPage />} />
-              <Route path="/risks" element={<RisksPage />} />
-              <Route path="/incidents" element={<IncidentsPage />} />
-              <Route path="/audits" element={<AuditsPage />} />
-              <Route path="/compliance" element={<CompliancePage />} />
-              <Route path="/governance" element={<GovernancePage />} />
-              <Route path="/actions" element={<ActionsPage />} />
-              <Route path="/performance" element={<PerformancePage />} />
-              <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/training" element={<TrainingPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </GRCLayout>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route element={<GRCLayout><Dashboard /></GRCLayout>} path="/" />
+            <Route element={<GRCLayout><AssetsPage /></GRCLayout>} path="/assets" />
+            <Route element={<GRCLayout><RisksPage /></GRCLayout>} path="/risks" />
+            <Route element={<GRCLayout><IncidentsPage /></GRCLayout>} path="/incidents" />
+            <Route element={<GRCLayout><AuditsPage /></GRCLayout>} path="/audits" />
+            <Route element={<GRCLayout><CompliancePage /></GRCLayout>} path="/compliance" />
+            <Route element={<GRCLayout><GovernancePage /></GRCLayout>} path="/governance" />
+            <Route element={<GRCLayout><ActionsPage /></GRCLayout>} path="/actions" />
+            <Route element={<GRCLayout><PerformancePage /></GRCLayout>} path="/performance" />
+            <Route element={<GRCLayout><DocumentsPage /></GRCLayout>} path="/documents" />
+            <Route element={<GRCLayout><TrainingPage /></GRCLayout>} path="/training" />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </BrowserRouter>
       </GRCProvider>
     </TooltipProvider>
