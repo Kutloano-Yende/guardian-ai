@@ -186,21 +186,24 @@
   }
 
   /* ── Glass Dialog Form Styling ── */
-  [data-radix-dialog-content] {
-    --muted-foreground: 0 0% 100%;
+  [data-radix-dialog-content] * {
+    color-scheme: light;
   }
 
-  [data-radix-dialog-content] label,
-  [data-radix-dialog-content] .text-muted-foreground,
-  [data-radix-dialog-content] [class*="text-"] {
+  [data-radix-dialog-content] {
     color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  [data-radix-dialog-content] input,
+  [data-radix-dialog-content] textarea,
+  [data-radix-dialog-content] [data-radix-select-trigger] {
+    color: rgba(0, 0, 0, 0.8) !important;
   }
 
   [data-radix-dialog-content] input,
   [data-radix-dialog-content] textarea {
     background: rgba(255, 255, 255, 0.08) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    color: rgba(0, 0, 0, 0.8) !important;
     border-radius: 0.75rem;
     backdrop-filter: blur(8px);
   }
