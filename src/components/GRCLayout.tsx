@@ -1,12 +1,28 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Box, AlertTriangle, FileWarning, ClipboardCheck,
   Shield, Scale, ListTodo, BarChart3, FileText, GraduationCap,
-  ChevronLeft, ChevronRight, Bell, User
+  ChevronLeft, ChevronRight, Bell, User, LogOut, ChevronDown
 } from "lucide-react";
+import { useAuth } from "@/lib/auth-provider";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import loginBg from "@/assets/login-bg.jpg";
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Admin",
+  risk_manager: "Risk Manager",
+  audit_manager: "Audit Manager",
+  compliance_officer: "Compliance Officer",
+  user: "User",
+};
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -25,6 +41,16 @@ const navItems = [
 export function GRCLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, profile, roles, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login");
+  };
+
+  const displayName = profile?.full_name || user?.email?.split("@")[0] || "User";
+  const primaryRole = roles.length > 0 ? ROLE_LABELS[roles[0]] || roles[0] : "User";
 
   return (
     <div
@@ -36,7 +62,6 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
         backgroundAttachment: "fixed",
       }}
     >
-      {/* Overlay for readability */}
       <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" />
 
       {/* Sidebar */}
@@ -56,12 +81,7 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
           </div>
           <AnimatePresence>
             {!collapsed && (
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="font-display font-bold text-white text-lg whitespace-nowrap"
-              >
+              <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="font-display font-bold text-white text-lg whitespace-nowrap">
                 GRC Shield
               </motion.span>
             )}
@@ -76,9 +96,7 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
                 key={item.path}
                 to={item.path}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
-                  active
-                    ? "text-white"
-                    : "text-white/60 hover:text-white/90"
+                  active ? "text-white" : "text-white/60 hover:text-white/90"
                 }`}
                 style={active ? {
                   background: "rgba(255,255,255,0.12)",
@@ -89,12 +107,7 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
                 <item.icon className="w-5 h-5 shrink-0" />
                 <AnimatePresence>
                   {!collapsed && (
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="whitespace-nowrap"
-                    >
+                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="whitespace-nowrap">
                       {item.label}
                     </motion.span>
                   )}
@@ -103,6 +116,32 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+
+        {/* User info at bottom of sidebar */}
+        <AnimatePresence>
+          {!collapsed && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="px-3 py-3 border-t"
+              style={{ borderColor: "rgba(255,255,255,0.08)" }}
+            >
+              <div className="flex items-center gap-3 px-2">
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white"
+                  style={{ background: "linear-gradient(135deg, hsl(165 45% 45%), hsl(211 65% 55%))" }}
+                >
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{displayName}</p>
+                  <p className="text-[10px] text-white/50 truncate">{primaryRole}</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <button
           onClick={() => setCollapsed(!collapsed)}
@@ -115,7 +154,6 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
         <header
           className="h-16 flex items-center justify-between px-6 shrink-0 border-b"
           style={{
@@ -137,16 +175,37 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
               <Bell className="w-5 h-5 text-muted-foreground" />
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-severity-critical" />
             </button>
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, hsl(165 45% 45%), hsl(211 65% 55%))" }}
-            >
-              <User className="w-4 h-4 text-white" />
-            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-white/10">
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                    style={{ background: "linear-gradient(135deg, hsl(165 45% 45%), hsl(211 65% 55%))" }}
+                  >
+                    {displayName.charAt(0).toUpperCase()}
+                  </div>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-3 py-2">
+                  <p className="text-sm font-medium">{displayName}</p>
+                  <p className="text-xs text-muted-foreground">{user?.email}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    {roles.map((r) => ROLE_LABELS[r] || r).join(", ")}
+                  </p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-6">
           <motion.div
             key={location.pathname}
