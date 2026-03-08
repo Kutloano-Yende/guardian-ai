@@ -31,7 +31,7 @@ export default function ActionsPage() {
           <p className="text-muted-foreground mt-1">Track mitigation actions and task follow-ups</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Add Action</Button></DialogTrigger>
+          <DialogTrigger asChild><Button className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add Action</Button></DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle className="font-display">New Action Item</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -45,25 +45,25 @@ export default function ActionsPage() {
               </div>
               <div><Label>Impact of Delay</Label><Input placeholder="e.g., R50,000 fine, POPIA breach" value={form.estimatedImpactOfDelay} onChange={(e) => setForm({ ...form, estimatedImpactOfDelay: e.target.value })} /></div>
               <div><Label>Notes</Label><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
-              <Button type="submit" className="w-full">Create Action</Button>
+              <button type="submit" className="glass-btn-primary">Create Action</button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
       {data.actions.length === 0 ? (
-        <div className="grc-card p-12 text-center">
+        <div className="glass-card p-12 text-center">
           <ListTodo className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="font-display font-semibold text-foreground">No action items</h3>
           <p className="text-muted-foreground text-sm mt-1">Create actions linked to incidents, risks, or audits</p>
         </div>
       ) : (
-        <div className="grc-card overflow-hidden">
-          <table className="w-full">
-            <thead><tr className="border-b bg-muted/50"><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Action</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Priority</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Linked To</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Assigned</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Due Date</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
+        <div className="glass-card overflow-hidden">
+          <table className="w-full glass-table">
+            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Action</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Priority</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Linked To</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Assigned</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Due Date</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
             <tbody>
               {data.actions.map((a) => (
-                <tr key={a.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                <tr key={a.id} className="border-b last:border-0 transition-colors" style={{ borderColor: "var(--glass-border)" }}>
                   <td className="px-4 py-3"><p className="text-sm font-medium text-foreground">{a.name}</p>{a.estimatedImpactOfDelay && <p className="text-xs text-severity-high">⚠ {a.estimatedImpactOfDelay}</p>}</td>
                   <td className="px-4 py-3"><SeverityBadge severity={a.priority} /></td>
                   <td className="px-4 py-3 text-sm text-muted-foreground capitalize">{a.relatedType}</td>

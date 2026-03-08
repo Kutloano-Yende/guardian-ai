@@ -3,9 +3,10 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Box, AlertTriangle, FileWarning, ClipboardCheck,
-  Shield, Scale, CheckSquare, ListTodo, BarChart3, FileText, GraduationCap,
+  Shield, Scale, ListTodo, BarChart3, FileText, GraduationCap,
   ChevronLeft, ChevronRight, Bell, User
 } from "lucide-react";
+import loginBg from "@/assets/login-bg.jpg";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -26,16 +27,32 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div
+      className="flex h-screen overflow-hidden"
+      style={{
+        backgroundImage: `url(${loginBg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+      }}
+    >
+      {/* Overlay for readability */}
+      <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" />
+
       {/* Sidebar */}
       <motion.aside
         animate={{ width: collapsed ? 72 : 260 }}
         transition={{ duration: 0.2 }}
-        className="flex flex-col bg-sidebar border-r border-sidebar-border shrink-0"
+        className="relative z-10 flex flex-col shrink-0 border-r"
+        style={{
+          background: "rgba(30, 41, 59, 0.85)",
+          backdropFilter: "blur(24px)",
+          borderColor: "rgba(255,255,255,0.08)",
+        }}
       >
-        <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border">
-          <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center shrink-0">
-            <Shield className="w-4 h-4 text-sidebar-primary-foreground" />
+        <div className="flex items-center gap-3 px-4 h-16 border-b" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, hsl(165 45% 45%), hsl(211 65% 55%))" }}>
+            <Shield className="w-4 h-4 text-white" />
           </div>
           <AnimatePresence>
             {!collapsed && (
@@ -43,7 +60,7 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="font-display font-bold text-sidebar-foreground text-lg whitespace-nowrap"
+                className="font-display font-bold text-white text-lg whitespace-nowrap"
               >
                 GRC Shield
               </motion.span>
@@ -58,11 +75,16 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                   active
-                    ? "bg-sidebar-accent text-sidebar-primary"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                    ? "text-white"
+                    : "text-white/60 hover:text-white/90"
                 }`}
+                style={active ? {
+                  background: "rgba(255,255,255,0.12)",
+                  backdropFilter: "blur(8px)",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                } : {}}
               >
                 <item.icon className="w-5 h-5 shrink-0" />
                 <AnimatePresence>
@@ -84,28 +106,42 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
 
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex items-center justify-center h-12 border-t border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+          className="flex items-center justify-center h-12 text-white/50 hover:text-white/80 transition-colors"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
       </motion.aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <header className="h-16 border-b flex items-center justify-between px-6 bg-card shrink-0">
+        <header
+          className="h-16 flex items-center justify-between px-6 shrink-0 border-b"
+          style={{
+            background: "var(--glass-bg)",
+            backdropFilter: "blur(20px)",
+            borderColor: "var(--glass-border)",
+          }}
+        >
           <div>
             <h2 className="font-display font-semibold text-foreground">
               {navItems.find((n) => n.path === location.pathname)?.label || "GRC Shield"}
             </h2>
           </div>
           <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-lg hover:bg-muted transition-colors">
+            <button
+              className="relative p-2 rounded-xl transition-colors"
+              style={{ background: "rgba(255,255,255,0.15)" }}
+            >
               <Bell className="w-5 h-5 text-muted-foreground" />
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-severity-critical" />
             </button>
-            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center">
-              <User className="w-4 h-4 text-primary-foreground" />
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, hsl(165 45% 45%), hsl(211 65% 55%))" }}
+            >
+              <User className="w-4 h-4 text-white" />
             </div>
           </div>
         </header>

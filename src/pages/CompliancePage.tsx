@@ -30,7 +30,7 @@ export default function CompliancePage() {
           <p className="text-muted-foreground mt-1">Ensure regulatory adherence and policy compliance</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Add Policy</Button></DialogTrigger>
+          <DialogTrigger asChild><Button className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add Policy</Button></DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle className="font-display">New Compliance Record</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -44,14 +44,14 @@ export default function CompliancePage() {
               </div>
               <div><Label>Enforcement Mechanism</Label><Input value={form.enforcement} onChange={(e) => setForm({ ...form, enforcement: e.target.value })} /></div>
               <div><Label>Consequences for Non-Compliance</Label><Textarea value={form.consequences} onChange={(e) => setForm({ ...form, consequences: e.target.value })} /></div>
-              <Button type="submit" className="w-full">Add Record</Button>
+              <button type="submit" className="glass-btn-primary">Add Record</button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
       {data.compliance.length === 0 ? (
-        <div className="grc-card p-12 text-center">
+        <div className="glass-card p-12 text-center">
           <Shield className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="font-display font-semibold text-foreground">No compliance records</h3>
           <p className="text-muted-foreground text-sm mt-1">Add policies and regulations to track compliance</p>
@@ -59,7 +59,7 @@ export default function CompliancePage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {data.compliance.map((c) => (
-            <div key={c.id} className="grc-card p-5">
+            <div key={c.id} className="glass-card p-5">
               <div className="flex items-start justify-between mb-3">
                 <h3 className="font-display font-semibold text-foreground">{c.name}</h3>
                 <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusColors[c.status]}`}>{c.status.replace("_", " ")}</span>
