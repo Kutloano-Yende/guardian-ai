@@ -122,7 +122,7 @@ export function GRCProvider({ children }: { children: ReactNode }) {
       const snakeKey = key.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`);
       snakeUpdates[snakeKey] = value;
     }
-    const { error } = await supabase.from(collection).update(snakeUpdates).eq("id", id);
+    const { error } = await (supabase.from(collection as any) as any).update(snakeUpdates).eq("id", id);
     if (error) { toast.error("Failed to update"); return; }
     setData((prev) => ({
       ...prev,
