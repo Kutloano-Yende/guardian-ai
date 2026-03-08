@@ -6,7 +6,28 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SeverityBadge } from "@/components/ui/severity-badge";
-import { Plus, Box } from "lucide-react";
+import { StatCard } from "@/components/ui/stat-card";
+import { Plus, Box, Monitor, Users, Cpu, DollarSign } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { motion } from "framer-motion";
+
+const TYPE_COLORS: Record<string, string> = {
+  hardware: "hsl(211, 65%, 45%)",
+  software: "hsl(165, 45%, 45%)",
+  human: "hsl(25, 90%, 55%)",
+  intellectual_property: "hsl(270, 50%, 55%)",
+  financial: "hsl(40, 95%, 50%)",
+};
+
+const GlassTooltip = ({ active, payload }: any) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-xl px-3 py-2 text-xs font-medium text-white shadow-lg"
+      style={{ background: "rgba(15, 23, 42, 0.9)", backdropFilter: "blur(8px)" }}>
+      {payload[0].name}: {payload[0].value}
+    </div>
+  );
+};
 
 export default function AssetsPage() {
   const { data, addAsset } = useGRC();
@@ -19,6 +40,23 @@ export default function AssetsPage() {
     setForm({ name: "", type: "hardware", department: "", owner: "", status: "active", criticality: "low", location: "" });
     setOpen(false);
   };
+
+  const assets = data.assets;
+  const activeAssets = assets.filter((a) => a.status === "active");
+  const criticalAssets = assets.filter((a) => a.criticality === "critical" || a.criticality === "high");
+  const deptCounts = assets.reduce((acc, a) => { acc[a.department] = (acc[a.department] || 0) + 1; return acc; }, {} as Record<string, number>);
+  const topDept = Object.entries(deptCounts).sort((a, b) => b[1] - a[1])[0];
+
+  const typeData = Object.entries(
+    assets.reduce((acc, a) => { acc[a.type] = (acc[a.type] || 0) + 1; return acc; }, {} as Record<string, number>)
+  ).map(([name, value]) => ({ name: name.replace("_", " "), value, color: TYPE_COLORS[name] || "hsl(211, 65%, 45%)" }));
+
+  const critData = [
+    { name: "Critical", value: assets.filter((a) => a.criticality === "critical").length, color: "hsl(0, 75%, 55%)" },
+    { name: "High", value: assets.filter((a) => a.criticality === "high").length, color: "hsl(25, 90%, 55%)" },
+    { name: "Medium", value: assets.filter((a) => a.criticality === "medium").length, color: "hsl(40, 95%, 50%)" },
+    { name: "Low", value: assets.filter((a) => a.criticality === "low").length, color: "hsl(165, 45%, 45%)" },
+  ].filter((d) => d.value > 0);
 
   return (
     <div className="space-y-6">
@@ -46,7 +84,64 @@ export default function AssetsPage() {
         </Dialog>
       </div>
 
-      {data.assets.length === 0 ? (
+      {/* Module Dashboard */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="Total Assets" value={assets.length} icon={Box} color="primary" subtitle="All registered assets" />
+        <StatCard title="Active" value={activeAssets.length} icon={Monitor} color="secondary" subtitle={`${assets.filter((a) => a.status === "maintenance").length} in maintenance`} />
+        <StatCard title="High/Critical" value={criticalAssets.length} icon={Cpu} color="severity-high" subtitle="Require attention" />
+        <StatCard title="Top Department" value={topDept ? topDept[0] : "N/A"} icon={Users} color="primary" subtitle={topDept ? `${topDept[1]} assets` : ""} />
+      </motion.div>
+
+      {assets.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-5">
+            <h3 className="font-display font-semibold text-foreground mb-4">Assets by Type</h3>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={typeData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={3} dataKey="value" animationDuration={800}>
+                    {typeData.map((e, i) => <Cell key={i} fill={e.color} stroke="transparent" />)}
+                  </Pie>
+                  <Tooltip content={<GlassTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex flex-wrap justify-center gap-3 mt-2">
+              {typeData.map((t) => (
+                <div key={t.name} className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: t.color }} />
+                  <span className="text-[11px] text-muted-foreground capitalize">{t.name}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="glass-card p-5">
+            <h3 className="font-display font-semibold text-foreground mb-4">Criticality Distribution</h3>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={critData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={3} dataKey="value" animationDuration={800}>
+                    {critData.map((e, i) => <Cell key={i} fill={e.color} stroke="transparent" />)}
+                  </Pie>
+                  <Tooltip content={<GlassTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex flex-wrap justify-center gap-3 mt-2">
+              {critData.map((c) => (
+                <div key={c.name} className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: c.color }} />
+                  <span className="text-[11px] text-muted-foreground">{c.name}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Data Table */}
+      {assets.length === 0 ? (
         <div className="glass-card p-12 text-center">
           <Box className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="font-display font-semibold text-foreground">No assets yet</h3>
@@ -57,7 +152,7 @@ export default function AssetsPage() {
           <table className="w-full glass-table">
             <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Name</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Department</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Owner</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Criticality</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
             <tbody>
-              {data.assets.map((a) => (
+              {assets.map((a) => (
                 <tr key={a.id} className="border-b last:border-0 transition-colors" style={{ borderColor: "var(--glass-border)" }}>
                   <td className="px-4 py-3 text-sm font-medium text-foreground">{a.name}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground capitalize">{a.type.replace("_", " ")}</td>

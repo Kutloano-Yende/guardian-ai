@@ -7,7 +7,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SeverityBadge, StatusBadge } from "@/components/ui/severity-badge";
-import { Plus, ListTodo } from "lucide-react";
+import { StatCard } from "@/components/ui/stat-card";
+import { Plus, ListTodo, Clock, CheckCircle2, AlertOctagon, Timer } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { motion } from "framer-motion";
+
+const GlassTooltip = ({ active, payload }: any) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-xl px-3 py-2 text-xs font-medium text-white shadow-lg"
+      style={{ background: "rgba(15, 23, 42, 0.9)", backdropFilter: "blur(8px)" }}>
+      {payload[0].name}: {payload[0].value}
+    </div>
+  );
+};
 
 export default function ActionsPage() {
   const { data, addAction } = useGRC();
@@ -22,6 +35,19 @@ export default function ActionsPage() {
     setForm({ name: "", relatedType: "incident", relatedId: "", assignedTo: "", priority: "medium", startDate: "", dueDate: "", status: "open", notes: "", estimatedImpactOfDelay: "" });
     setOpen(false);
   };
+
+  const actions = data.actions;
+  const openActions = actions.filter((a) => a.status === "open");
+  const inProgress = actions.filter((a) => a.status === "in_progress");
+  const resolved = actions.filter((a) => a.status === "resolved" || a.status === "closed");
+  const overdue = actions.filter((a) => a.status !== "resolved" && a.status !== "closed" && new Date(a.dueDate) < new Date());
+
+  const priorityData = [
+    { name: "Critical", value: actions.filter((a) => a.priority === "critical").length, color: "hsl(0, 75%, 55%)" },
+    { name: "High", value: actions.filter((a) => a.priority === "high").length, color: "hsl(25, 90%, 55%)" },
+    { name: "Medium", value: actions.filter((a) => a.priority === "medium").length, color: "hsl(40, 95%, 50%)" },
+    { name: "Low", value: actions.filter((a) => a.priority === "low").length, color: "hsl(165, 45%, 45%)" },
+  ].filter((d) => d.value > 0);
 
   return (
     <div className="space-y-6">
@@ -51,7 +77,56 @@ export default function ActionsPage() {
         </Dialog>
       </div>
 
-      {data.actions.length === 0 ? (
+      {/* Module Dashboard */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="Total Actions" value={actions.length} icon={ListTodo} color="primary" subtitle="All tracked" />
+        <StatCard title="Open" value={openActions.length} icon={AlertOctagon} color="severity-high" subtitle={`${inProgress.length} in progress`} />
+        <StatCard title="Completed" value={resolved.length} icon={CheckCircle2} color="secondary" subtitle={`${actions.length > 0 ? Math.round((resolved.length / actions.length) * 100) : 0}% done`} />
+        <StatCard title="Overdue" value={overdue.length} icon={Timer} color="destructive" subtitle="Past due date" />
+      </motion.div>
+
+      {actions.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-5">
+            <h3 className="font-display font-semibold text-foreground mb-4">Priority Distribution</h3>
+            <div className="relative h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart><Pie data={priorityData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={3} dataKey="value" animationDuration={800}>
+                  {priorityData.map((e, i) => <Cell key={i} fill={e.color} stroke="transparent" />)}
+                </Pie><Tooltip content={<GlassTooltip />} /></PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-2xl font-bold text-foreground">{actions.length}</span>
+              </div>
+            </div>
+            <div className="flex justify-center gap-3 mt-2">
+              {priorityData.map((p) => (<div key={p.name} className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} /><span className="text-[11px] text-muted-foreground">{p.name}</span></div>))}
+            </div>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="glass-card p-5">
+            <h3 className="font-display font-semibold text-foreground mb-4">Overdue Actions</h3>
+            {overdue.length === 0 ? (
+              <p className="text-muted-foreground text-sm py-8 text-center">🎉 No overdue actions!</p>
+            ) : (
+              <div className="space-y-3 max-h-56 overflow-y-auto">
+                {overdue.map((a) => (
+                  <div key={a.id} className="flex items-center justify-between p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.1)" }}>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{a.name}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5"><Clock className="w-3 h-3" /> Due: {new Date(a.dueDate).toLocaleDateString()}</p>
+                    </div>
+                    <SeverityBadge severity={a.priority} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        </div>
+      )}
+
+      {/* Data Table */}
+      {actions.length === 0 ? (
         <div className="glass-card p-12 text-center">
           <ListTodo className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="font-display font-semibold text-foreground">No action items</h3>
@@ -62,7 +137,7 @@ export default function ActionsPage() {
           <table className="w-full glass-table">
             <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Action</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Priority</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Linked To</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Assigned</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Due Date</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
             <tbody>
-              {data.actions.map((a) => (
+              {actions.map((a) => (
                 <tr key={a.id} className="border-b last:border-0 transition-colors" style={{ borderColor: "var(--glass-border)" }}>
                   <td className="px-4 py-3"><p className="text-sm font-medium text-foreground">{a.name}</p>{a.estimatedImpactOfDelay && <p className="text-xs text-severity-high">⚠ {a.estimatedImpactOfDelay}</p>}</td>
                   <td className="px-4 py-3"><SeverityBadge severity={a.priority} /></td>
