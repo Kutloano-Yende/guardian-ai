@@ -186,13 +186,14 @@
   }
 
   /* ── Glass Dialog Form Styling ── */
+  [data-radix-dialog-content] {
+    --muted-foreground: 0 0% 100%;
+  }
+
   [data-radix-dialog-content] label,
-  [data-radix-dialog-content] .text-sm.font-medium,
-  [data-radix-dialog-content] > div > div > div:first-of-type {
+  [data-radix-dialog-content] .text-muted-foreground,
+  [data-radix-dialog-content] [class*="text-"] {
     color: rgba(255, 255, 255, 0.9) !important;
-    font-size: 0.75rem !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.025em !important;
   }
 
   [data-radix-dialog-content] input,
