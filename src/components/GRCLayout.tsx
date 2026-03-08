@@ -43,7 +43,7 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, profile, roles, signOut } = useAuth();
+  const { user, profile, roles, signOut, hasRole } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
