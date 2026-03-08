@@ -7,7 +7,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/ui/severity-badge";
-import { Plus, AlertTriangle } from "lucide-react";
+import { StatCard } from "@/components/ui/stat-card";
+import { RiskHeatMap } from "@/components/charts/RiskHeatMap";
+import { Plus, AlertTriangle, ShieldAlert, Target, TrendingDown } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
+import { motion } from "framer-motion";
+
+const GlassTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-xl px-3 py-2 text-xs font-medium text-white shadow-lg"
+      style={{ background: "rgba(15, 23, 42, 0.9)", backdropFilter: "blur(8px)" }}>
+      {label}: {payload[0].value}
+    </div>
+  );
+};
 
 export default function RisksPage() {
   const { data, addRisk } = useGRC();
@@ -20,6 +34,19 @@ export default function RisksPage() {
     setForm({ name: "", type: "operational", assetId: "", probability: 3, impact: 3, mitigationStrategy: "", owner: "", status: "open", regulatoryRef: "" });
     setOpen(false);
   };
+
+  const risks = data.risks;
+  const openRisks = risks.filter((r) => r.status === "open");
+  const criticalRisks = risks.filter((r) => r.probability * r.impact >= 15);
+  const resolvedRisks = risks.filter((r) => r.status === "resolved" || r.status === "closed");
+  const avgScore = risks.length > 0 ? (risks.reduce((s, r) => s + r.probability * r.impact, 0) / risks.length).toFixed(1) : "0";
+
+  const typeData = [
+    { type: "Operational", count: risks.filter((r) => r.type === "operational").length, fill: "hsl(211, 65%, 45%)" },
+    { type: "Financial", count: risks.filter((r) => r.type === "financial").length, fill: "hsl(40, 95%, 50%)" },
+    { type: "Compliance", count: risks.filter((r) => r.type === "compliance").length, fill: "hsl(165, 45%, 45%)" },
+    { type: "Strategic", count: risks.filter((r) => r.type === "strategic").length, fill: "hsl(270, 50%, 55%)" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -49,7 +76,38 @@ export default function RisksPage() {
         </Dialog>
       </div>
 
-      {data.risks.length === 0 ? (
+      {/* Module Dashboard */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="Total Risks" value={risks.length} icon={AlertTriangle} color="primary" subtitle={`${openRisks.length} open`} />
+        <StatCard title="Critical Risks" value={criticalRisks.length} icon={ShieldAlert} color="destructive" subtitle="Score ≥ 15" />
+        <StatCard title="Avg Risk Score" value={avgScore} icon={Target} color="severity-medium" subtitle="Probability × Impact" />
+        <StatCard title="Resolved" value={resolvedRisks.length} icon={TrendingDown} color="secondary" subtitle={`${risks.length > 0 ? Math.round((resolvedRisks.length / risks.length) * 100) : 0}% resolution rate`} />
+      </motion.div>
+
+      {risks.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <RiskHeatMap risks={risks} />
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-5">
+            <h3 className="font-display font-semibold text-foreground mb-4">Risks by Type</h3>
+            <div className="h-52">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={typeData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                  <XAxis dataKey="type" tick={{ fontSize: 11, fill: "hsl(215, 12%, 50%)" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: "hsl(215, 12%, 50%)" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip content={<GlassTooltip />} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
+                  <Bar dataKey="count" radius={[6, 6, 0, 0]} animationDuration={800}>
+                    {typeData.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Data Table */}
+      {risks.length === 0 ? (
         <div className="glass-card p-12 text-center">
           <AlertTriangle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="font-display font-semibold text-foreground">No risks registered</h3>
@@ -60,7 +118,7 @@ export default function RisksPage() {
           <table className="w-full glass-table">
             <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Risk</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Score</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Owner</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Regulation</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
             <tbody>
-              {data.risks.map((r) => (
+              {risks.map((r) => (
                 <tr key={r.id} className="border-b last:border-0 transition-colors" style={{ borderColor: "var(--glass-border)" }}>
                   <td className="px-4 py-3 text-sm font-medium text-foreground">{r.name}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground capitalize">{r.type}</td>
