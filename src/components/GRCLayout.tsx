@@ -90,7 +90,7 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => {
+          {navItems.filter((item) => !('adminOnly' in item && item.adminOnly) || hasRole("admin")).map((item) => {
             const active = location.pathname === item.path;
             return (
               <Link
