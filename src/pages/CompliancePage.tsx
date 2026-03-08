@@ -61,15 +61,15 @@ export default function CompliancePage() {
             <DialogHeader><DialogTitle className="font-display">New Compliance Record</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div><Label>Policy / Regulation Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label>Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as ComplianceRecord["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="internal_policy">Internal Policy</SelectItem><SelectItem value="sa_law">SA Law</SelectItem><SelectItem value="international_standard">International Standard</SelectItem></SelectContent></Select></div>
-                <div><Label>Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
-                <div><Label>Owner</Label><Input required value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} /></div>
-                <div><Label>Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as ComplianceRecord["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="compliant">Compliant</SelectItem><SelectItem value="non_compliant">Non-Compliant</SelectItem><SelectItem value="under_review">Under Review</SelectItem></SelectContent></Select></div>
-                <div><Label>Last Reviewed</Label><Input type="date" value={form.lastReviewed} onChange={(e) => setForm({ ...form, lastReviewed: e.target.value })} /></div>
+                <div><Label className="text-white">Policy / Regulation Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+                <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as ComplianceRecord["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="internal_policy">Internal Policy</SelectItem><SelectItem value="sa_law">SA Law</SelectItem><SelectItem value="international_standard">International Standard</SelectItem></SelectContent></Select></div>
+                <div><Label className="text-white">Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
+                <div><Label className="text-white">Owner</Label><Input required value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} /></div>
+                <div><Label className="text-white">Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as ComplianceRecord["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="compliant">Compliant</SelectItem><SelectItem value="non_compliant">Non-Compliant</SelectItem><SelectItem value="under_review">Under Review</SelectItem></SelectContent></Select></div>
+                <div><Label className="text-white">Last Reviewed</Label><Input type="date" value={form.lastReviewed} onChange={(e) => setForm({ ...form, lastReviewed: e.target.value })} /></div>
               </div>
-              <div><Label>Enforcement Mechanism</Label><Input value={form.enforcement} onChange={(e) => setForm({ ...form, enforcement: e.target.value })} /></div>
-              <div><Label>Consequences for Non-Compliance</Label><Textarea value={form.consequences} onChange={(e) => setForm({ ...form, consequences: e.target.value })} /></div>
+              <div><Label className="text-white">Enforcement Mechanism</Label><Input value={form.enforcement} onChange={(e) => setForm({ ...form, enforcement: e.target.value })} /></div>
+              <div><Label className="text-white">Consequences for Non-Compliance</Label><Textarea value={form.consequences} onChange={(e) => setForm({ ...form, consequences: e.target.value })} /></div>
               <button type="submit" className="glass-btn-primary">Add Record</button>
             </form>
           </DialogContent>

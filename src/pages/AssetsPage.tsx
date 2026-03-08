@@ -71,12 +71,12 @@ export default function AssetsPage() {
             <DialogHeader><DialogTitle className="font-display">New Asset</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div><Label>Asset Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label>Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as Asset["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="hardware">Hardware</SelectItem><SelectItem value="software">Software</SelectItem><SelectItem value="human">Human</SelectItem><SelectItem value="intellectual_property">Intellectual Property</SelectItem><SelectItem value="financial">Financial</SelectItem></SelectContent></Select></div>
-                <div><Label>Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
-                <div><Label>Owner</Label><Input required value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} /></div>
-                <div><Label>Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
-                <div><Label>Criticality</Label><Select value={form.criticality} onValueChange={(v) => setForm({ ...form, criticality: v as Asset["criticality"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
+                <div><Label className="text-white">Asset Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+                <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as Asset["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="hardware">Hardware</SelectItem><SelectItem value="software">Software</SelectItem><SelectItem value="human">Human</SelectItem><SelectItem value="intellectual_property">Intellectual Property</SelectItem><SelectItem value="financial">Financial</SelectItem></SelectContent></Select></div>
+                <div><Label className="text-white">Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
+                <div><Label className="text-white">Owner</Label><Input required value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} /></div>
+                <div><Label className="text-white">Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
+                <div><Label className="text-white">Criticality</Label><Select value={form.criticality} onValueChange={(v) => setForm({ ...form, criticality: v as Asset["criticality"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
               </div>
               <button type="submit" className="glass-btn-primary">Create Asset</button>
             </form>
