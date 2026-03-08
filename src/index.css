@@ -184,4 +184,51 @@
     filter: brightness(1.1);
     box-shadow: 0 8px 24px rgba(45, 150, 120, 0.3);
   }
+
+  /* ── Glass Dialog Form Styling ── */
+  [data-radix-dialog-content] .space-y-4 label,
+  [data-radix-dialog-content] .space-y-4 .text-sm.font-medium {
+    @apply text-white/80 text-xs font-semibold tracking-wide;
+  }
+
+  [data-radix-dialog-content] input,
+  [data-radix-dialog-content] textarea {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    border-radius: 0.75rem;
+    backdrop-filter: blur(8px);
+  }
+  [data-radix-dialog-content] input::placeholder,
+  [data-radix-dialog-content] textarea::placeholder {
+    color: rgba(255, 255, 255, 0.4) !important;
+  }
+  [data-radix-dialog-content] input:focus,
+  [data-radix-dialog-content] textarea:focus {
+    background: rgba(255, 255, 255, 0.14) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+    outline: none;
+  }
+
+  [data-radix-dialog-content] [data-radix-select-trigger] {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    border-radius: 0.75rem;
+    backdrop-filter: blur(8px);
+  }
+  [data-radix-dialog-content] [data-radix-select-trigger]:focus {
+    background: rgba(255, 255, 255, 0.14) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+  }
+  [data-radix-dialog-content] [data-radix-select-trigger] svg {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* Dialog title */
+  [data-radix-dialog-content] h2 {
+    @apply text-white font-display;
+  }
 }
