@@ -65,14 +65,14 @@ export default function AuditsPage() {
             <DialogHeader><DialogTitle className="font-display">New Audit</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div><Label>Audit Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label>Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as AuditRecord["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="internal">Internal</SelectItem><SelectItem value="external">External</SelectItem><SelectItem value="regulatory">Regulatory</SelectItem></SelectContent></Select></div>
-                <div><Label>Scope</Label><Input required value={form.scope} onChange={(e) => setForm({ ...form, scope: e.target.value })} /></div>
-                <div><Label>Auditor</Label><Input required value={form.auditor} onChange={(e) => setForm({ ...form, auditor: e.target.value })} /></div>
-                <div><Label>Start Date</Label><Input type="date" required value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></div>
-                <div><Label>End Date</Label><Input type="date" required value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
+                <div><Label className="text-white">Audit Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+                <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as AuditRecord["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="internal">Internal</SelectItem><SelectItem value="external">External</SelectItem><SelectItem value="regulatory">Regulatory</SelectItem></SelectContent></Select></div>
+                <div><Label className="text-white">Scope</Label><Input required value={form.scope} onChange={(e) => setForm({ ...form, scope: e.target.value })} /></div>
+                <div><Label className="text-white">Auditor</Label><Input required value={form.auditor} onChange={(e) => setForm({ ...form, auditor: e.target.value })} /></div>
+                <div><Label className="text-white">Start Date</Label><Input type="date" required value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></div>
+                <div><Label className="text-white">End Date</Label><Input type="date" required value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
               </div>
-              <div><Label>Findings / Notes</Label><Textarea value={form.findings} onChange={(e) => setForm({ ...form, findings: e.target.value })} /></div>
+              <div><Label className="text-white">Findings / Notes</Label><Textarea value={form.findings} onChange={(e) => setForm({ ...form, findings: e.target.value })} /></div>
               <button type="submit" className="glass-btn-primary">Create Audit</button>
             </form>
           </DialogContent>

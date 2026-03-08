@@ -73,18 +73,18 @@ export default function IncidentsPage() {
             <DialogHeader><DialogTitle className="font-display">Report Incident</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div><Label>Incident Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label>Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{incidentTypes.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
-                <div><Label>Reported By</Label><Input required value={form.reportedBy} onChange={(e) => setForm({ ...form, reportedBy: e.target.value })} /></div>
-                <div><Label>Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
-                <div><Label>Severity</Label><Select value={form.severity} onValueChange={(v) => setForm({ ...form, severity: v as Incident["severity"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
-                <div><Label>Assigned To</Label><Input required value={form.assignedTo} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })} /></div>
-                <div><Label>Linked Asset</Label><Select value={form.assetId} onValueChange={(v) => setForm({ ...form, assetId: v })}><SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger><SelectContent>{data.assets.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent></Select></div>
-                <div><Label>Linked Risk</Label><Select value={form.riskId} onValueChange={(v) => setForm({ ...form, riskId: v })}><SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger><SelectContent>{data.risks.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}</SelectContent></Select></div>
-                <div><Label>Resolution Deadline</Label><Input type="date" required value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} /></div>
+                <div><Label className="text-white">Incident Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+                <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{incidentTypes.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
+                <div><Label className="text-white">Reported By</Label><Input required value={form.reportedBy} onChange={(e) => setForm({ ...form, reportedBy: e.target.value })} /></div>
+                <div><Label className="text-white">Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
+                <div><Label className="text-white">Severity</Label><Select value={form.severity} onValueChange={(v) => setForm({ ...form, severity: v as Incident["severity"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
+                <div><Label className="text-white">Assigned To</Label><Input required value={form.assignedTo} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })} /></div>
+                <div><Label className="text-white">Linked Asset</Label><Select value={form.assetId} onValueChange={(v) => setForm({ ...form, assetId: v })}><SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger><SelectContent>{data.assets.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent></Select></div>
+                <div><Label className="text-white">Linked Risk</Label><Select value={form.riskId} onValueChange={(v) => setForm({ ...form, riskId: v })}><SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger><SelectContent>{data.risks.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}</SelectContent></Select></div>
+                <div><Label className="text-white">Resolution Deadline</Label><Input type="date" required value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} /></div>
               </div>
-              <div><Label>Regulatory Impact</Label><Input placeholder="e.g., POPIA violation, possible fine R50,000" value={form.regulatoryImpact} onChange={(e) => setForm({ ...form, regulatoryImpact: e.target.value })} /></div>
-              <div><Label>Description</Label><Textarea required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+              <div><Label className="text-white">Regulatory Impact</Label><Input placeholder="e.g., POPIA violation, possible fine R50,000" value={form.regulatoryImpact} onChange={(e) => setForm({ ...form, regulatoryImpact: e.target.value })} /></div>
+              <div><Label className="text-white">Description</Label><Textarea required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
               <button type="submit" className="glass-btn-primary">Submit Incident</button>
             </form>
           </DialogContent>

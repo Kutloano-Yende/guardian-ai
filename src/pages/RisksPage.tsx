@@ -61,15 +61,15 @@ export default function RisksPage() {
             <DialogHeader><DialogTitle className="font-display">New Risk</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div><Label>Risk Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label>Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as Risk["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="operational">Operational</SelectItem><SelectItem value="financial">Financial</SelectItem><SelectItem value="compliance">Compliance</SelectItem><SelectItem value="strategic">Strategic</SelectItem></SelectContent></Select></div>
-                <div><Label>Linked Asset</Label><Select value={form.assetId} onValueChange={(v) => setForm({ ...form, assetId: v })}><SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger><SelectContent>{data.assets.map((a) => (<SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>))}</SelectContent></Select></div>
-                <div><Label>Owner</Label><Input required value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} /></div>
-                <div><Label>Probability (1-5)</Label><Input type="number" min={1} max={5} value={form.probability} onChange={(e) => setForm({ ...form, probability: +e.target.value })} /></div>
-                <div><Label>Impact (1-5)</Label><Input type="number" min={1} max={5} value={form.impact} onChange={(e) => setForm({ ...form, impact: +e.target.value })} /></div>
+                <div><Label className="text-white">Risk Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+                <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as Risk["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="operational">Operational</SelectItem><SelectItem value="financial">Financial</SelectItem><SelectItem value="compliance">Compliance</SelectItem><SelectItem value="strategic">Strategic</SelectItem></SelectContent></Select></div>
+                <div><Label className="text-white">Linked Asset</Label><Select value={form.assetId} onValueChange={(v) => setForm({ ...form, assetId: v })}><SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger><SelectContent>{data.assets.map((a) => (<SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>))}</SelectContent></Select></div>
+                <div><Label className="text-white">Owner</Label><Input required value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} /></div>
+                <div><Label className="text-white">Probability (1-5)</Label><Input type="number" min={1} max={5} value={form.probability} onChange={(e) => setForm({ ...form, probability: +e.target.value })} /></div>
+                <div><Label className="text-white">Impact (1-5)</Label><Input type="number" min={1} max={5} value={form.impact} onChange={(e) => setForm({ ...form, impact: +e.target.value })} /></div>
               </div>
-              <div><Label>Mitigation Strategy</Label><Textarea value={form.mitigationStrategy} onChange={(e) => setForm({ ...form, mitigationStrategy: e.target.value })} /></div>
-              <div><Label>Regulatory Reference</Label><Input placeholder="e.g., POPIA Section 19" value={form.regulatoryRef} onChange={(e) => setForm({ ...form, regulatoryRef: e.target.value })} /></div>
+              <div><Label className="text-white">Mitigation Strategy</Label><Textarea value={form.mitigationStrategy} onChange={(e) => setForm({ ...form, mitigationStrategy: e.target.value })} /></div>
+              <div><Label className="text-white">Regulatory Reference</Label><Input placeholder="e.g., POPIA Section 19" value={form.regulatoryRef} onChange={(e) => setForm({ ...form, regulatoryRef: e.target.value })} /></div>
               <button type="submit" className="glass-btn-primary">Create Risk</button>
             </form>
           </DialogContent>
