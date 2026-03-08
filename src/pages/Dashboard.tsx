@@ -1,9 +1,23 @@
 import { useGRC } from "@/lib/grc-store";
 import { StatCard } from "@/components/ui/stat-card";
 import { SeverityBadge, StatusBadge } from "@/components/ui/severity-badge";
+import { RiskHeatMap } from "@/components/charts/RiskHeatMap";
+import { ComplianceDonut } from "@/components/charts/ComplianceDonut";
+import { RiskTrendChart } from "@/components/charts/RiskTrendChart";
+import { IncidentBarChart } from "@/components/charts/IncidentBarChart";
+import { motion } from "framer-motion";
 import {
   Box, AlertTriangle, FileWarning, ClipboardCheck, Shield, ListTodo, BarChart3, TrendingUp, Clock
 } from "lucide-react";
+
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06 } },
+};
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+};
 
 export default function Dashboard() {
   const { data } = useGRC();
@@ -17,27 +31,41 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
         <h1 className="text-2xl font-display font-bold text-foreground">Welcome back</h1>
         <p className="text-muted-foreground mt-1">Here's your GRC overview for today</p>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Assets" value={data.assets.length} icon={Box} color="primary" subtitle="Tracked & managed" />
-        <StatCard title="Open Risks" value={data.risks.filter((r) => r.status === "open").length} icon={AlertTriangle} color="severity-high" subtitle={`${criticalRisks.length} critical`} />
-        <StatCard title="Active Incidents" value={openIncidents.length} icon={FileWarning} color="destructive" subtitle="Requires attention" />
-        <StatCard title="Compliance Score" value={data.compliance.length ? `${Math.round(((data.compliance.length - nonCompliant.length) / data.compliance.length) * 100)}%` : "N/A"} icon={Shield} color="secondary" subtitle={`${nonCompliant.length} non-compliant`} />
-      </div>
+      {/* Stat cards row 1 */}
+      <motion.div variants={stagger} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <motion.div variants={fadeUp}><StatCard title="Total Assets" value={data.assets.length} icon={Box} color="primary" subtitle="Tracked & managed" /></motion.div>
+        <motion.div variants={fadeUp}><StatCard title="Open Risks" value={data.risks.filter((r) => r.status === "open").length} icon={AlertTriangle} color="severity-high" subtitle={`${criticalRisks.length} critical`} /></motion.div>
+        <motion.div variants={fadeUp}><StatCard title="Active Incidents" value={openIncidents.length} icon={FileWarning} color="destructive" subtitle="Requires attention" /></motion.div>
+        <motion.div variants={fadeUp}><StatCard title="Compliance Score" value={data.compliance.length ? `${Math.round(((data.compliance.length - nonCompliant.length) / data.compliance.length) * 100)}%` : "N/A"} icon={Shield} color="secondary" subtitle={`${nonCompliant.length} non-compliant`} /></motion.div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Pending Audits" value={data.audits.filter((a) => a.status === "planned").length} icon={ClipboardCheck} color="primary" />
-        <StatCard title="Overdue Actions" value={overdueActions.length} icon={ListTodo} color="severity-high" />
-        <StatCard title="KPIs Tracked" value={data.performance.length} icon={BarChart3} color="secondary" />
-        <StatCard title="At-Risk KPIs" value={data.performance.filter((p) => p.status === "at_risk" || p.status === "off_track").length} icon={TrendingUp} color="severity-medium" />
+      {/* Stat cards row 2 */}
+      <motion.div variants={stagger} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <motion.div variants={fadeUp}><StatCard title="Pending Audits" value={data.audits.filter((a) => a.status === "planned").length} icon={ClipboardCheck} color="primary" /></motion.div>
+        <motion.div variants={fadeUp}><StatCard title="Overdue Actions" value={overdueActions.length} icon={ListTodo} color="severity-high" /></motion.div>
+        <motion.div variants={fadeUp}><StatCard title="KPIs Tracked" value={data.performance.length} icon={BarChart3} color="secondary" /></motion.div>
+        <motion.div variants={fadeUp}><StatCard title="At-Risk KPIs" value={data.performance.filter((p) => p.status === "at_risk" || p.status === "off_track").length} icon={TrendingUp} color="severity-medium" /></motion.div>
+      </motion.div>
+
+      {/* Charts row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RiskHeatMap risks={data.risks} />
+        <ComplianceDonut records={data.compliance} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-card p-5">
+        <RiskTrendChart risks={data.risks} />
+        <IncidentBarChart incidents={data.incidents} />
+      </div>
+
+      {/* Lists row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }} className="glass-card p-5">
           <h3 className="font-display font-semibold text-foreground mb-4 flex items-center gap-2">
             <FileWarning className="w-4 h-4 text-destructive" /> Recent Incidents
           </h3>
@@ -46,7 +74,7 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-3">
               {data.incidents.slice(-5).reverse().map((inc) => (
-                <div key={inc.id} className="flex items-center justify-between p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.2)" }}>
+                <div key={inc.id} className="flex items-center justify-between p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.1)" }}>
                   <div>
                     <p className="text-sm font-medium text-foreground">{inc.name}</p>
                     <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -61,9 +89,9 @@ export default function Dashboard() {
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
 
-        <div className="glass-card p-5">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.35 }} className="glass-card p-5">
           <h3 className="font-display font-semibold text-foreground mb-4 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-severity-high" /> Top Risks
           </h3>
@@ -72,7 +100,7 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-3">
               {data.risks.sort((a, b) => b.probability * b.impact - a.probability * a.impact).slice(0, 5).map((risk) => (
-                <div key={risk.id} className="flex items-center justify-between p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.2)" }}>
+                <div key={risk.id} className="flex items-center justify-between p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.1)" }}>
                   <div>
                     <p className="text-sm font-medium text-foreground">{risk.name}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">Score: {risk.probability * risk.impact} ({risk.type})</p>
@@ -82,7 +110,7 @@ export default function Dashboard() {
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );
