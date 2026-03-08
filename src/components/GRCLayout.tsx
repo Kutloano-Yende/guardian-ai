@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Box, AlertTriangle, FileWarning, ClipboardCheck,
   Shield, Scale, ListTodo, BarChart3, FileText, GraduationCap,
-  ChevronLeft, ChevronRight, Bell, User, LogOut, ChevronDown
+  ChevronLeft, ChevronRight, Bell, User, LogOut, ChevronDown, Settings
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-provider";
 import {
