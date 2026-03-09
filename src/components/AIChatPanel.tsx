@@ -353,17 +353,18 @@ export function AIChatPanel() {
                   >
                     {msg.role === "assistant" ? (
                       <>
-                        <div className="prose prose-invert prose-xs max-w-none text-white/90 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_h1]:text-sm [&_h1]:font-bold [&_h1]:text-white [&_h2]:text-sm [&_h2]:font-bold [&_h2]:text-white [&_h3]:text-xs [&_h3]:font-semibold [&_h3]:text-white [&_h4]:text-xs [&_h4]:font-semibold [&_p]:text-xs [&_p]:leading-relaxed [&_li]:text-xs [&_li]:leading-relaxed [&_strong]:text-white [&_strong]:font-semibold [&_table]:text-xs [&_th]:text-white [&_th]:font-semibold [&_code]:text-emerald-300 [&_code]:bg-white/10 [&_code]:px-1 [&_code]:rounded [&_a]:text-blue-300">
-                          <ReactMarkdown>{msg.content || " "}</ReactMarkdown>
-                        </div>
-                        {msg.streaming && msg.content && (
-                          <span className="inline-block w-1 h-3 bg-emerald-400 rounded-sm animate-pulse ml-0.5 align-middle" />
-                        )}
-                        {msg.streaming && !msg.content && (
+                        {msg.streaming && !msg.content ? (
                           <div className="flex items-center gap-1.5 py-0.5">
                             <Loader2 className="w-3 h-3 text-white/40 animate-spin" />
                             <span className="text-xs text-white/40">Thinking...</span>
                           </div>
+                        ) : (
+                          <div className="prose prose-invert prose-xs max-w-none text-white/90 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_h1]:text-sm [&_h1]:font-bold [&_h1]:text-white [&_h2]:text-sm [&_h2]:font-bold [&_h2]:text-white [&_h3]:text-xs [&_h3]:font-semibold [&_h3]:text-white [&_h4]:text-xs [&_h4]:font-semibold [&_p]:text-xs [&_p]:leading-relaxed [&_li]:text-xs [&_li]:leading-relaxed [&_strong]:text-white [&_strong]:font-semibold [&_table]:text-xs [&_th]:text-white [&_th]:font-semibold [&_code]:text-emerald-300 [&_code]:bg-white/10 [&_code]:px-1 [&_code]:rounded [&_a]:text-blue-300">
+                            <ReactMarkdown key={i}>{typeof msg.content === "string" ? msg.content : ""}</ReactMarkdown>
+                          </div>
+                        )}
+                        {msg.streaming && msg.content && (
+                          <span className="inline-block w-1 h-3 bg-emerald-400 rounded-sm animate-pulse ml-0.5 align-middle" />
                         )}
                       </>
                     ) : (
