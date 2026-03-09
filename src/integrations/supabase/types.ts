@@ -293,6 +293,45 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          compliance_reviews: boolean
+          created_at: string
+          critical_incidents: boolean
+          due_soon_days: number
+          email_enabled: boolean
+          high_risks: boolean
+          id: string
+          overdue_actions: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          compliance_reviews?: boolean
+          created_at?: string
+          critical_incidents?: boolean
+          due_soon_days?: number
+          email_enabled?: boolean
+          high_risks?: boolean
+          id?: string
+          overdue_actions?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          compliance_reviews?: boolean
+          created_at?: string
+          critical_incidents?: boolean
+          due_soon_days?: number
+          email_enabled?: boolean
+          high_risks?: boolean
+          id?: string
+          overdue_actions?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       performance: {
         Row: {
           actual: number
