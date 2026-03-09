@@ -62,10 +62,11 @@ export function NotificationBell() {
     const items: Notification[] = [];
 
     // Fetch actions, incidents, audits in parallel
-    const [actionsRes, incidentsRes, auditsRes] = await Promise.all([
+    const [actionsRes, incidentsRes, auditsRes, complianceRes] = await Promise.all([
       supabase.from("actions").select("id, name, due_date, priority, status").neq("status", "resolved").neq("status", "closed"),
       supabase.from("incidents").select("id, name, deadline, severity, status").in("status", ["open", "in_progress"]),
       supabase.from("audits").select("id, name, end_date, status").neq("status", "completed"),
+      supabase.from("compliance").select("id, name, last_reviewed, status"),
     ]);
 
     // Process actions
