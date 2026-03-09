@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/auth-provider";
 import { 
@@ -36,6 +37,14 @@ const moduleIcons: Record<string, React.ElementType> = {
   performance: BarChart3,
 };
 
+const moduleRoutes: Record<string, string> = {
+  incidents: "/incidents",
+  actions: "/actions",
+  compliance: "/compliance",
+  risks: "/risks",
+  performance: "/performance",
+};
+
 const severityColors: Record<string, string> = {
   critical: "bg-severity-critical/20 text-severity-critical border-severity-critical/30",
   high: "bg-severity-high/20 text-severity-high border-severity-high/30",
@@ -52,6 +61,7 @@ const severityGlow: Record<string, string> = {
 
 export function ProactiveAlertsWidget() {
   const { session } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState<AlertsResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -223,6 +233,18 @@ export function ProactiveAlertsWidget() {
                                   Recommended Action
                                 </p>
                                 <p className="text-xs text-foreground/90">{alert.recommendation}</p>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="mt-3 h-7 text-xs w-full"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(moduleRoutes[alert.module] || "/");
+                                  }}
+                                >
+                                  Go to {alert.module.charAt(0).toUpperCase() + alert.module.slice(1)}
+                                  <ChevronRight className="w-3 h-3 ml-1" />
+                                </Button>
                               </div>
                             </motion.div>
                           )}
