@@ -6,7 +6,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 const SYSTEM_PROMPT = `You are GRC Shield AI — an expert Governance, Risk, and Compliance assistant embedded in an enterprise GRC platform.
@@ -55,7 +55,6 @@ async function fetchGRCContext(supabase: any) {
   ]);
 
   const summary: string[] = [];
-
   if (assets.data?.length) {
     const critical = assets.data.filter((a: any) => a.criticality === "critical" || a.criticality === "high");
     summary.push(`## Assets (${assets.data.length} total, ${critical.length} critical/high)\n${JSON.stringify(assets.data.slice(0, 20), null, 1)}`);
@@ -97,10 +96,12 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Create client with user's JWT
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
@@ -108,18 +109,18 @@ Deno.serve(async (req) => {
 
     const { data: { user }, error: authError } = await userClient.auth.getUser();
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { message, conversationHistory = [], currentModule = "general" } = await req.json();
 
-    // Fetch user roles
     const { data: rolesData } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
     const userRoles = rolesData?.map((r: any) => r.role) || ["user"];
 
-    // Fetch GRC context
     const grcContext = await fetchGRCContext(supabase);
-
     const roleContext = `\n\nCurrent user roles: ${userRoles.join(", ")}. Current module: ${currentModule}. Adapt your response accordingly.`;
 
     const messages = [
@@ -139,32 +140,98 @@ Deno.serve(async (req) => {
         messages,
         temperature: 0.4,
         max_tokens: 2048,
+        stream: true,
       }),
     });
 
     if (!aiResponse.ok) {
+      if (aiResponse.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (aiResponse.status === 402) {
+        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits to your workspace." }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const errorText = await aiResponse.text();
       console.error("AI Gateway error:", errorText);
-      return new Response(JSON.stringify({ error: "AI service unavailable" }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "AI service unavailable" }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const aiData = await aiResponse.json();
-    const reply = aiData.choices?.[0]?.message?.content || "I couldn't generate a response. Please try again.";
+    // Stream the response back, but also collect the full text for audit logging
+    const { readable, writable } = new TransformStream();
+    const writer = writable.getWriter();
+    const encoder = new TextEncoder();
 
-    // Log to audit trail
-    await supabase.from("ai_chat_logs").insert({
-      user_id: user.id,
-      user_message: message,
-      ai_response: reply,
-      context_module: currentModule,
-      user_role: userRoles[0] || "user",
-    });
+    // Process stream and tee into audit log in background
+    (async () => {
+      const reader = aiResponse.body!.getReader();
+      const decoder = new TextDecoder();
+      let fullText = "";
+      let textBuffer = "";
 
-    return new Response(JSON.stringify({ reply }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          textBuffer += chunk;
+
+          // Parse SSE lines to accumulate full text for audit log
+          let newlineIndex: number;
+          let processBuffer = textBuffer;
+          while ((newlineIndex = processBuffer.indexOf("\n")) !== -1) {
+            const line = processBuffer.slice(0, newlineIndex).replace(/\r$/, "");
+            processBuffer = processBuffer.slice(newlineIndex + 1);
+            if (line.startsWith("data: ") && line !== "data: [DONE]") {
+              try {
+                const parsed = JSON.parse(line.slice(6));
+                const content = parsed.choices?.[0]?.delta?.content;
+                if (content) fullText += content;
+              } catch { /* partial JSON, skip */ }
+            }
+          }
+          textBuffer = processBuffer;
+
+          // Forward raw SSE bytes to client
+          await writer.write(encoder.encode(chunk));
+        }
+      } finally {
+        await writer.close();
+        // Async audit log after stream completes
+        if (fullText) {
+          await supabase.from("ai_chat_logs").insert({
+            user_id: user.id,
+            user_message: message,
+            ai_response: fullText,
+            context_module: currentModule,
+            user_role: userRoles[0] || "user",
+          });
+        }
+      }
+    })();
+
+    return new Response(readable, {
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "X-Accel-Buffering": "no",
+      },
     });
   } catch (err) {
     console.error("Edge function error:", err);
-    return new Response(JSON.stringify({ error: "Internal error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "Internal error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
