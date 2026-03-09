@@ -33,7 +33,7 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
 const TYPE_LABELS: Record<string, string> = {
   overdue: "Overdue",
   due_today: "Due Today",
-  due_soon: "Due in 3 days",
+  due_soon: "Due Soon",
 };
 
 const SEVERITY_STYLES: Record<string, string> = {
@@ -44,24 +44,32 @@ const SEVERITY_STYLES: Record<string, string> = {
 };
 
 export function NotificationBell() {
-  const { session } = useAuth();
+  const { session, user } = useAuth();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [open, setOpen] = useState(false);
 
   const checkDueDates = useCallback(async () => {
-    if (!session?.access_token) return;
+    if (!session?.access_token || !user?.id) return;
 
+    // Fetch user preferences
+    const { data: prefs } = await supabase
+      .from("notification_preferences")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const dueSoonDays = prefs?.due_soon_days ?? 3;
     const now = new Date();
     const today = now.toISOString().split("T")[0];
-    const threeDaysLater = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)
+    const dueSoonDate = new Date(now.getTime() + dueSoonDays * 24 * 60 * 60 * 1000)
       .toISOString()
       .split("T")[0];
 
     const items: Notification[] = [];
 
-    // Fetch actions, incidents, audits in parallel
+    // Fetch data in parallel
     const [actionsRes, incidentsRes, auditsRes, complianceRes] = await Promise.all([
       supabase.from("actions").select("id, name, due_date, priority, status").neq("status", "resolved").neq("status", "closed"),
       supabase.from("incidents").select("id, name, deadline, severity, status").in("status", ["open", "in_progress"]),
@@ -69,56 +77,57 @@ export function NotificationBell() {
       supabase.from("compliance").select("id, name, last_reviewed, status"),
     ]);
 
-    // Process actions
-    (actionsRes.data || []).forEach((a) => {
-      if (!a.due_date) return;
-      const due = a.due_date;
-      const type = due < today ? "overdue" : due === today ? "due_today" : due <= threeDaysLater ? "due_soon" : null;
-      if (!type) return;
-      const severity = type === "overdue" ? "critical" : type === "due_today" ? "high" : "medium";
-      items.push({
-        id: `action-${a.id}`,
-        title: a.name,
-        message: `Action "${a.name}" is ${TYPE_LABELS[type].toLowerCase()} (${a.due_date})`,
-        severity,
-        module: "Actions",
-        route: "/actions",
-        dueDate: a.due_date,
-        type,
+    // Process actions (respects overdue_actions pref)
+    if (prefs?.overdue_actions !== false) {
+      (actionsRes.data || []).forEach((a) => {
+        if (!a.due_date) return;
+        const due = a.due_date;
+        const type = due < today ? "overdue" : due === today ? "due_today" : due <= dueSoonDate ? "due_soon" : null;
+        if (!type) return;
+        items.push({
+          id: `action-${a.id}`,
+          title: a.name,
+          message: `Action "${a.name}" is ${TYPE_LABELS[type].toLowerCase()} (${a.due_date})`,
+          severity: type === "overdue" ? "critical" : type === "due_today" ? "high" : "medium",
+          module: "Actions",
+          route: "/actions",
+          dueDate: a.due_date,
+          type,
+        });
       });
-    });
+    }
 
-    // Process incidents
-    (incidentsRes.data || []).forEach((i) => {
-      if (!i.deadline) return;
-      const due = i.deadline;
-      const type = due < today ? "overdue" : due === today ? "due_today" : due <= threeDaysLater ? "due_soon" : null;
-      if (!type) return;
-      const severity = type === "overdue" ? "critical" : type === "due_today" ? "high" : "medium";
-      items.push({
-        id: `incident-${i.id}`,
-        title: i.name,
-        message: `Incident "${i.name}" deadline is ${TYPE_LABELS[type].toLowerCase()} (${i.deadline})`,
-        severity,
-        module: "Incidents",
-        route: "/incidents",
-        dueDate: i.deadline,
-        type,
+    // Process incidents (respects critical_incidents pref)
+    if (prefs?.critical_incidents !== false) {
+      (incidentsRes.data || []).forEach((i) => {
+        if (!i.deadline) return;
+        const due = i.deadline;
+        const type = due < today ? "overdue" : due === today ? "due_today" : due <= dueSoonDate ? "due_soon" : null;
+        if (!type) return;
+        items.push({
+          id: `incident-${i.id}`,
+          title: i.name,
+          message: `Incident "${i.name}" deadline is ${TYPE_LABELS[type].toLowerCase()} (${i.deadline})`,
+          severity: type === "overdue" ? "critical" : type === "due_today" ? "high" : "medium",
+          module: "Incidents",
+          route: "/incidents",
+          dueDate: i.deadline,
+          type,
+        });
       });
-    });
+    }
 
-    // Process audits
+    // Process audits (always shown)
     (auditsRes.data || []).forEach((a) => {
       if (!a.end_date) return;
       const due = a.end_date;
-      const type = due < today ? "overdue" : due === today ? "due_today" : due <= threeDaysLater ? "due_soon" : null;
+      const type = due < today ? "overdue" : due === today ? "due_today" : due <= dueSoonDate ? "due_soon" : null;
       if (!type) return;
-      const severity = type === "overdue" ? "critical" : type === "due_today" ? "high" : "medium";
       items.push({
         id: `audit-${a.id}`,
         title: a.name,
         message: `Audit "${a.name}" end date is ${TYPE_LABELS[type].toLowerCase()} (${a.end_date})`,
-        severity,
+        severity: type === "overdue" ? "critical" : type === "due_today" ? "high" : "medium",
         module: "Audits",
         route: "/audits",
         dueDate: a.end_date,
@@ -126,27 +135,27 @@ export function NotificationBell() {
       });
     });
 
-    // Process compliance - flag items where last_reviewed is overdue (>90 days) or due soon (>80 days)
-    const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-    const eightyDaysAgo = new Date(now.getTime() - 80 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-    (complianceRes.data || []).forEach((c) => {
-      if (!c.last_reviewed) return;
-      const reviewed = c.last_reviewed;
-      const type = reviewed <= ninetyDaysAgo ? "overdue" : reviewed <= eightyDaysAgo ? "due_soon" : null;
-      if (!type) return;
-      const severity = type === "overdue" ? "critical" : "medium";
-      const label = type === "overdue" ? "overdue for review (>90 days)" : "review due soon";
-      items.push({
-        id: `compliance-${c.id}`,
-        title: c.name,
-        message: `Compliance "${c.name}" is ${label} (last: ${c.last_reviewed})`,
-        severity,
-        module: "Compliance",
-        route: "/compliance",
-        dueDate: c.last_reviewed,
-        type,
+    // Process compliance (respects compliance_reviews pref)
+    if (prefs?.compliance_reviews !== false) {
+      const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+      const eightyDaysAgo = new Date(now.getTime() - 80 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+      (complianceRes.data || []).forEach((c) => {
+        if (!c.last_reviewed) return;
+        const reviewed = c.last_reviewed;
+        const type = reviewed <= ninetyDaysAgo ? "overdue" : reviewed <= eightyDaysAgo ? "due_soon" : null;
+        if (!type) return;
+        items.push({
+          id: `compliance-${c.id}`,
+          title: c.name,
+          message: `Compliance "${c.name}" is ${type === "overdue" ? "overdue for review (>90 days)" : "review due soon"} (last: ${c.last_reviewed})`,
+          severity: type === "overdue" ? "critical" : "medium",
+          module: "Compliance",
+          route: "/compliance",
+          dueDate: c.last_reviewed,
+          type,
+        });
       });
-    });
+    }
 
     const priority = { overdue: 0, due_today: 1, due_soon: 2 };
     items.sort((a, b) => priority[a.type] - priority[b.type]);
@@ -163,16 +172,15 @@ export function NotificationBell() {
           duration: 6000,
         });
       });
-  }, [session?.access_token, dismissed]);
+  }, [session?.access_token, user?.id, dismissed]);
 
   useEffect(() => {
-    if (session?.access_token) {
+    if (session?.access_token && user?.id) {
       checkDueDates();
-      // Re-check every 60 seconds
       const interval = setInterval(checkDueDates, 60000);
       return () => clearInterval(interval);
     }
-  }, [session?.access_token, checkDueDates]);
+  }, [session?.access_token, user?.id, checkDueDates]);
 
   const activeNotifications = notifications.filter((n) => !dismissed.has(n.id));
   const criticalCount = activeNotifications.filter((n) => n.severity === "critical" || n.severity === "high").length;

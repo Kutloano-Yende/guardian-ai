@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Box, AlertTriangle, FileWarning, ClipboardCheck,
   Shield, Scale, ListTodo, BarChart3, FileText, GraduationCap,
-  ChevronLeft, ChevronRight, User, LogOut, ChevronDown, Settings
+  ChevronLeft, ChevronRight, User, LogOut, ChevronDown, Settings, BellRing
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-provider";
 import {
@@ -38,6 +38,7 @@ const navItems = [
   { path: "/performance", label: "Performance", icon: BarChart3 },
   { path: "/documents", label: "Documents", icon: FileText },
   { path: "/training", label: "Training", icon: GraduationCap },
+  { path: "/settings", label: "Settings", icon: BellRing },
   { path: "/admin", label: "Admin Panel", icon: Settings, adminOnly: true },
 ] as const;
 
