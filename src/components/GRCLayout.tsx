@@ -219,6 +219,8 @@ export function GRCLayout({ children }: { children: React.ReactNode }) {
           </motion.div>
         </main>
       </div>
+
+      <AIChatPanel />
     </div>
   );
 }
