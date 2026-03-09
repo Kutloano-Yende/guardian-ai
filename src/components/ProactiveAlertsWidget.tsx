@@ -61,6 +61,7 @@ const severityGlow: Record<string, string> = {
 
 export function ProactiveAlertsWidget() {
   const { session } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState<AlertsResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
