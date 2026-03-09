@@ -5,6 +5,7 @@ import { RiskHeatMap } from "@/components/charts/RiskHeatMap";
 import { ComplianceDonut } from "@/components/charts/ComplianceDonut";
 import { RiskTrendChart } from "@/components/charts/RiskTrendChart";
 import { IncidentBarChart } from "@/components/charts/IncidentBarChart";
+import { ProactiveAlertsWidget } from "@/components/ProactiveAlertsWidget";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import {
@@ -105,15 +106,22 @@ export default function Dashboard() {
         <motion.div variants={fadeUp}><StatCard title="Training" value="6" icon={GraduationCap} color="secondary" subtitle="Active courses" /></motion.div>
       </motion.div>
 
-      {/* Row 3: Risk Heat Map + Compliance Donut */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RiskHeatMap risks={data.risks} />
-        <ComplianceDonut records={data.compliance} />
+      {/* Row 3: AI Proactive Alerts + Risk Heat Map */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <ProactiveAlertsWidget />
+        <div className="lg:col-span-2">
+          <RiskHeatMap risks={data.risks} />
+        </div>
       </div>
 
-      {/* Row 4: Risk Trend + Incident Severity */}
+      {/* Row 4: Compliance Donut + Risk Trend */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ComplianceDonut records={data.compliance} />
         <RiskTrendChart risks={data.risks} />
+      </div>
+
+      {/* Row 5: Incident Severity */}
+      <div className="grid grid-cols-1 gap-6">
         <IncidentBarChart incidents={data.incidents} />
       </div>
 
