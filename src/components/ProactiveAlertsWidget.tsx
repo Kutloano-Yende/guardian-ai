@@ -37,6 +37,14 @@ const moduleIcons: Record<string, React.ElementType> = {
   performance: BarChart3,
 };
 
+const moduleRoutes: Record<string, string> = {
+  incidents: "/incidents",
+  actions: "/actions",
+  compliance: "/compliance",
+  risks: "/risks",
+  performance: "/performance",
+};
+
 const severityColors: Record<string, string> = {
   critical: "bg-severity-critical/20 text-severity-critical border-severity-critical/30",
   high: "bg-severity-high/20 text-severity-high border-severity-high/30",
