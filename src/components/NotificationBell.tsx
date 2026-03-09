@@ -44,18 +44,26 @@ const SEVERITY_STYLES: Record<string, string> = {
 };
 
 export function NotificationBell() {
-  const { session } = useAuth();
+  const { session, user } = useAuth();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [open, setOpen] = useState(false);
 
   const checkDueDates = useCallback(async () => {
-    if (!session?.access_token) return;
+    if (!session?.access_token || !user?.id) return;
 
+    // Fetch user preferences
+    const { data: prefs } = await supabase
+      .from("notification_preferences")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const dueSoonDays = prefs?.due_soon_days ?? 3;
     const now = new Date();
     const today = now.toISOString().split("T")[0];
-    const threeDaysLater = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)
+    const dueSoonDate = new Date(now.getTime() + dueSoonDays * 24 * 60 * 60 * 1000)
       .toISOString()
       .split("T")[0];
 
