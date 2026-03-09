@@ -106,10 +106,18 @@ export default function Dashboard() {
         <motion.div variants={fadeUp}><StatCard title="Training" value="6" icon={GraduationCap} color="secondary" subtitle="Active courses" /></motion.div>
       </motion.div>
 
-      {/* Row 3: Risk Heat Map + Compliance Donut */}
+      {/* Row 3: AI Proactive Alerts + Risk Heat Map */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <ProactiveAlertsWidget />
+        <div className="lg:col-span-2">
+          <RiskHeatMap risks={data.risks} />
+        </div>
+      </div>
+
+      {/* Row 4: Compliance Donut + Risk Trend */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RiskHeatMap risks={data.risks} />
         <ComplianceDonut records={data.compliance} />
+        <RiskTrendChart risks={data.risks} />
       </div>
 
       {/* Row 4: Risk Trend + Incident Severity */}
