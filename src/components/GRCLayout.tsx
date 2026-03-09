@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import loginBg from "@/assets/login-bg.jpg";
+import { AIChatPanel } from "@/components/AIChatPanel";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
