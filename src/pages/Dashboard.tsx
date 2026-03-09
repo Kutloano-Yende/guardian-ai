@@ -5,6 +5,7 @@ import { RiskHeatMap } from "@/components/charts/RiskHeatMap";
 import { ComplianceDonut } from "@/components/charts/ComplianceDonut";
 import { RiskTrendChart } from "@/components/charts/RiskTrendChart";
 import { IncidentBarChart } from "@/components/charts/IncidentBarChart";
+import { ProactiveAlertsWidget } from "@/components/ProactiveAlertsWidget";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import {
