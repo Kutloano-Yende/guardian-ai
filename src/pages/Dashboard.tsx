@@ -120,9 +120,8 @@ export default function Dashboard() {
         <RiskTrendChart risks={data.risks} />
       </div>
 
-      {/* Row 4: Risk Trend + Incident Severity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RiskTrendChart risks={data.risks} />
+      {/* Row 5: Incident Severity */}
+      <div className="grid grid-cols-1 gap-6">
         <IncidentBarChart incidents={data.incidents} />
       </div>
 
