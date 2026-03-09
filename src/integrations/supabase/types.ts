@@ -62,6 +62,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_chat_logs: {
+        Row: {
+          ai_response: string
+          context_module: string | null
+          created_at: string | null
+          id: string
+          user_id: string
+          user_message: string
+          user_role: string | null
+        }
+        Insert: {
+          ai_response: string
+          context_module?: string | null
+          created_at?: string | null
+          id?: string
+          user_id: string
+          user_message: string
+          user_role?: string | null
+        }
+        Update: {
+          ai_response?: string
+          context_module?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string
+          user_message?: string
+          user_role?: string | null
+        }
+        Relationships: []
+      }
       assets: {
         Row: {
           created_at: string
