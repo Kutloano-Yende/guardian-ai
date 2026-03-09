@@ -233,6 +233,18 @@ export function ProactiveAlertsWidget() {
                                   Recommended Action
                                 </p>
                                 <p className="text-xs text-foreground/90">{alert.recommendation}</p>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="mt-3 h-7 text-xs w-full"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(moduleRoutes[alert.module] || "/");
+                                  }}
+                                >
+                                  Go to {alert.module.charAt(0).toUpperCase() + alert.module.slice(1)}
+                                  <ChevronRight className="w-3 h-3 ml-1" />
+                                </Button>
                               </div>
                             </motion.div>
                           )}
