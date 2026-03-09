@@ -126,7 +126,28 @@ export function NotificationBell() {
       });
     });
 
-    // Sort: overdue first, then due_today, then due_soon
+    // Process compliance - flag items where last_reviewed is overdue (>90 days) or due soon (>80 days)
+    const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const eightyDaysAgo = new Date(now.getTime() - 80 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    (complianceRes.data || []).forEach((c) => {
+      if (!c.last_reviewed) return;
+      const reviewed = c.last_reviewed;
+      const type = reviewed <= ninetyDaysAgo ? "overdue" : reviewed <= eightyDaysAgo ? "due_soon" : null;
+      if (!type) return;
+      const severity = type === "overdue" ? "critical" : "medium";
+      const label = type === "overdue" ? "overdue for review (>90 days)" : "review due soon";
+      items.push({
+        id: `compliance-${c.id}`,
+        title: c.name,
+        message: `Compliance "${c.name}" is ${label} (last: ${c.last_reviewed})`,
+        severity,
+        module: "Compliance",
+        route: "/compliance",
+        dueDate: c.last_reviewed,
+        type,
+      });
+    });
+
     const priority = { overdue: 0, due_today: 1, due_soon: 2 };
     items.sort((a, b) => priority[a.type] - priority[b.type]);
 
