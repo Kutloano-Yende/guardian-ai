@@ -93,7 +93,7 @@ export default function AuditsPage() {
               <div><Label className="text-white">Auditor</Label><Input required value={form.auditor} onChange={(e) => setForm({ ...form, auditor: e.target.value })} /></div>
               <div><Label className="text-white">Start Date</Label><Input type="date" required value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></div>
               <div><Label className="text-white">End Date</Label><Input type="date" required value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
-              {editingId && <div><Label className="text-white">Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as AuditRecord["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="planned">Planned</SelectItem><SelectItem value="ongoing">Ongoing</SelectItem><SelectItem value="completed">Completed</SelectItem></SelectContent></Select></div>}
+              <div><Label className="text-white">Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as AuditRecord["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="planned">Planned</SelectItem><SelectItem value="ongoing">Ongoing</SelectItem><SelectItem value="completed">Completed</SelectItem></SelectContent></Select></div>
             </div>
             <div><Label className="text-white">Findings / Notes</Label><Textarea value={form.findings} onChange={(e) => setForm({ ...form, findings: e.target.value })} /></div>
             <button type="submit" className="glass-btn-primary">{editingId ? "Save Changes" : "Create Audit"}</button>
