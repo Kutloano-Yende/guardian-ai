@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { StatCard } from "@/components/ui/stat-card";
-import { Plus, ClipboardCheck, CalendarClock, CheckCircle2, Loader2 } from "lucide-react";
+import { Plus, ClipboardCheck, CalendarClock, CheckCircle2, Loader2, Pencil, Trash2 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { motion } from "framer-motion";
 
@@ -21,15 +22,34 @@ const GlassTooltip = ({ active, payload }: any) => {
   );
 };
 
+const DEFAULT_FORM = { name: "", scope: "", type: "internal" as AuditRecord["type"], auditor: "", startDate: "", endDate: "", findings: "", status: "planned" as AuditRecord["status"], linkedIncidents: [] as string[], linkedRisks: [] as string[] };
+
 export default function AuditsPage() {
-  const { data, addAudit } = useGRC();
+  const { data, addAudit, updateItem, deleteItem } = useGRC();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", scope: "", type: "internal" as AuditRecord["type"], auditor: "", startDate: "", endDate: "", findings: "", status: "planned" as AuditRecord["status"], linkedIncidents: [] as string[], linkedRisks: [] as string[] });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(DEFAULT_FORM);
+
+  const handleOpenChange = (v: boolean) => {
+    setOpen(v);
+    if (!v) { setEditingId(null); setForm(DEFAULT_FORM); }
+  };
+
+  const openEdit = (a: AuditRecord) => {
+    setForm({ name: a.name, scope: a.scope, type: a.type, auditor: a.auditor, startDate: a.startDate, endDate: a.endDate, findings: a.findings, status: a.status, linkedIncidents: a.linkedIncidents, linkedRisks: a.linkedRisks });
+    setEditingId(a.id);
+    setOpen(true);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addAudit(form);
-    setForm({ name: "", scope: "", type: "internal", auditor: "", startDate: "", endDate: "", findings: "", status: "planned", linkedIncidents: [], linkedRisks: [] });
+    if (editingId) {
+      updateItem("audits", editingId, form);
+    } else {
+      addAudit(form);
+    }
+    setForm(DEFAULT_FORM);
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -59,25 +79,27 @@ export default function AuditsPage() {
           <h1 className="text-2xl font-display font-bold text-foreground">Audit Management</h1>
           <p className="text-muted-foreground mt-1">Plan, execute, and record audits</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Schedule Audit</Button></DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle className="font-display">New Audit</DialogTitle></DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label className="text-white">Audit Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as AuditRecord["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="internal">Internal</SelectItem><SelectItem value="external">External</SelectItem><SelectItem value="regulatory">Regulatory</SelectItem></SelectContent></Select></div>
-                <div><Label className="text-white">Scope</Label><Input required value={form.scope} onChange={(e) => setForm({ ...form, scope: e.target.value })} /></div>
-                <div><Label className="text-white">Auditor</Label><Input required value={form.auditor} onChange={(e) => setForm({ ...form, auditor: e.target.value })} /></div>
-                <div><Label className="text-white">Start Date</Label><Input type="date" required value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></div>
-                <div><Label className="text-white">End Date</Label><Input type="date" required value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
-              </div>
-              <div><Label className="text-white">Findings / Notes</Label><Textarea value={form.findings} onChange={(e) => setForm({ ...form, findings: e.target.value })} /></div>
-              <button type="submit" className="glass-btn-primary">Create Audit</button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setOpen(true)} className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Schedule Audit</Button>
       </div>
+
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle className="font-display">{editingId ? "Edit Audit" : "New Audit"}</DialogTitle></DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label className="text-white">Audit Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+              <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as AuditRecord["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="internal">Internal</SelectItem><SelectItem value="external">External</SelectItem><SelectItem value="regulatory">Regulatory</SelectItem></SelectContent></Select></div>
+              <div><Label className="text-white">Scope</Label><Input required value={form.scope} onChange={(e) => setForm({ ...form, scope: e.target.value })} /></div>
+              <div><Label className="text-white">Auditor</Label><Input required value={form.auditor} onChange={(e) => setForm({ ...form, auditor: e.target.value })} /></div>
+              <div><Label className="text-white">Start Date</Label><Input type="date" required value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></div>
+              <div><Label className="text-white">End Date</Label><Input type="date" required value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
+              {editingId && <div><Label className="text-white">Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as AuditRecord["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="planned">Planned</SelectItem><SelectItem value="ongoing">Ongoing</SelectItem><SelectItem value="completed">Completed</SelectItem></SelectContent></Select></div>}
+            </div>
+            <div><Label className="text-white">Findings / Notes</Label><Textarea value={form.findings} onChange={(e) => setForm({ ...form, findings: e.target.value })} /></div>
+            <button type="submit" className="glass-btn-primary">{editingId ? "Save Changes" : "Create Audit"}</button>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Module Dashboard */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -135,7 +157,17 @@ export default function AuditsPage() {
             <div key={a.id} className="glass-card p-5">
               <div className="flex items-start justify-between mb-3">
                 <h3 className="font-display font-semibold text-foreground text-sm">{a.name}</h3>
-                <span className={`text-xs font-semibold capitalize ${statusColors[a.status]}`}>{a.status}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-semibold capitalize ${statusColors[a.status]}`}>{a.status}</span>
+                  <button onClick={() => openEdit(a)} className="p-1 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild><button className="p-1 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-severity-high transition-colors"><Trash2 className="w-3.5 h-3.5" /></button></AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader><AlertDialogTitle>Delete Audit?</AlertDialogTitle><AlertDialogDescription>This will permanently delete "{a.name}". This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                      <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => deleteItem("audits", a.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>Type: <span className="capitalize">{a.type}</span></p>

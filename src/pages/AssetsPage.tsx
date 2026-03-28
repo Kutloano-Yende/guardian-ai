@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { SeverityBadge } from "@/components/ui/severity-badge";
 import { StatCard } from "@/components/ui/stat-card";
-import { Plus, Box, Monitor, Users, Cpu, DollarSign } from "lucide-react";
+import { Plus, Box, Monitor, Users, Cpu, Pencil, Trash2 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { motion } from "framer-motion";
 
@@ -29,15 +30,34 @@ const GlassTooltip = ({ active, payload }: any) => {
   );
 };
 
+const DEFAULT_FORM = { name: "", type: "hardware" as Asset["type"], department: "", owner: "", status: "active" as Asset["status"], criticality: "low" as Asset["criticality"], location: "" };
+
 export default function AssetsPage() {
-  const { data, addAsset } = useGRC();
+  const { data, addAsset, updateItem, deleteItem } = useGRC();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", type: "hardware" as Asset["type"], department: "", owner: "", status: "active" as Asset["status"], criticality: "low" as Asset["criticality"], location: "" });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(DEFAULT_FORM);
+
+  const handleOpenChange = (v: boolean) => {
+    setOpen(v);
+    if (!v) { setEditingId(null); setForm(DEFAULT_FORM); }
+  };
+
+  const openEdit = (a: Asset) => {
+    setForm({ name: a.name, type: a.type, department: a.department, owner: a.owner, status: a.status, criticality: a.criticality, location: a.location || "" });
+    setEditingId(a.id);
+    setOpen(true);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addAsset(form);
-    setForm({ name: "", type: "hardware", department: "", owner: "", status: "active", criticality: "low", location: "" });
+    if (editingId) {
+      updateItem("assets", editingId, form);
+    } else {
+      addAsset(form);
+    }
+    setForm(DEFAULT_FORM);
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -65,24 +85,25 @@ export default function AssetsPage() {
           <h1 className="text-2xl font-display font-bold text-foreground">Asset Management</h1>
           <p className="text-muted-foreground mt-1">Track and manage all company assets</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add Asset</Button></DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle className="font-display">New Asset</DialogTitle></DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label className="text-white">Asset Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as Asset["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="hardware">Hardware</SelectItem><SelectItem value="software">Software</SelectItem><SelectItem value="human">Human</SelectItem><SelectItem value="intellectual_property">Intellectual Property</SelectItem><SelectItem value="financial">Financial</SelectItem></SelectContent></Select></div>
-                <div><Label className="text-white">Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
-                <div><Label className="text-white">Owner</Label><Input required value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} /></div>
-                <div><Label className="text-white">Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
-                <div><Label className="text-white">Criticality</Label><Select value={form.criticality} onValueChange={(v) => setForm({ ...form, criticality: v as Asset["criticality"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
-              </div>
-              <button type="submit" className="glass-btn-primary">Create Asset</button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setOpen(true)} className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add Asset</Button>
       </div>
+
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle className="font-display">{editingId ? "Edit Asset" : "New Asset"}</DialogTitle></DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label className="text-white">Asset Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+              <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as Asset["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="hardware">Hardware</SelectItem><SelectItem value="software">Software</SelectItem><SelectItem value="human">Human</SelectItem><SelectItem value="intellectual_property">Intellectual Property</SelectItem><SelectItem value="financial">Financial</SelectItem></SelectContent></Select></div>
+              <div><Label className="text-white">Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
+              <div><Label className="text-white">Owner</Label><Input required value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} /></div>
+              <div><Label className="text-white">Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
+              <div><Label className="text-white">Criticality</Label><Select value={form.criticality} onValueChange={(v) => setForm({ ...form, criticality: v as Asset["criticality"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
+            </div>
+            <button type="submit" className="glass-btn-primary">{editingId ? "Save Changes" : "Create Asset"}</button>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Module Dashboard */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -150,7 +171,7 @@ export default function AssetsPage() {
       ) : (
         <div className="glass-card overflow-hidden">
           <table className="w-full glass-table">
-            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Name</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Department</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Owner</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Criticality</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
+            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Name</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Department</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Owner</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Criticality</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th><th className="px-4 py-3"></th></tr></thead>
             <tbody>
               {assets.map((a) => (
                 <tr key={a.id} className="border-b last:border-0 transition-colors" style={{ borderColor: "var(--glass-border)" }}>
@@ -160,6 +181,18 @@ export default function AssetsPage() {
                   <td className="px-4 py-3 text-sm text-muted-foreground">{a.owner}</td>
                   <td className="px-4 py-3"><SeverityBadge severity={a.criticality} /></td>
                   <td className="px-4 py-3 text-sm text-muted-foreground capitalize">{a.status}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild><button className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-severity-high transition-colors"><Trash2 className="w-3.5 h-3.5" /></button></AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader><AlertDialogTitle>Delete Asset?</AlertDialogTitle><AlertDialogDescription>This will permanently delete "{a.name}". This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => deleteItem("assets", a.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

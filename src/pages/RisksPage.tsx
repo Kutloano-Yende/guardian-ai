@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { StatusBadge } from "@/components/ui/severity-badge";
 import { StatCard } from "@/components/ui/stat-card";
 import { RiskHeatMap } from "@/components/charts/RiskHeatMap";
-import { Plus, AlertTriangle, ShieldAlert, Target, TrendingDown } from "lucide-react";
+import { Plus, AlertTriangle, ShieldAlert, Target, TrendingDown, Pencil, Trash2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import { motion } from "framer-motion";
 
@@ -23,15 +24,34 @@ const GlassTooltip = ({ active, payload, label }: any) => {
   );
 };
 
+const DEFAULT_FORM = { name: "", type: "operational" as Risk["type"], assetId: "", probability: 3, impact: 3, mitigationStrategy: "", owner: "", status: "open" as Risk["status"], regulatoryRef: "" };
+
 export default function RisksPage() {
-  const { data, addRisk } = useGRC();
+  const { data, addRisk, updateItem, deleteItem } = useGRC();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", type: "operational" as Risk["type"], assetId: "", probability: 3, impact: 3, mitigationStrategy: "", owner: "", status: "open" as Risk["status"], regulatoryRef: "" });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(DEFAULT_FORM);
+
+  const handleOpenChange = (v: boolean) => {
+    setOpen(v);
+    if (!v) { setEditingId(null); setForm(DEFAULT_FORM); }
+  };
+
+  const openEdit = (r: Risk) => {
+    setForm({ name: r.name, type: r.type, assetId: r.assetId || "", probability: r.probability, impact: r.impact, mitigationStrategy: r.mitigationStrategy, owner: r.owner, status: r.status, regulatoryRef: r.regulatoryRef });
+    setEditingId(r.id);
+    setOpen(true);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addRisk({ ...form, assetId: form.assetId || undefined });
-    setForm({ name: "", type: "operational", assetId: "", probability: 3, impact: 3, mitigationStrategy: "", owner: "", status: "open", regulatoryRef: "" });
+    if (editingId) {
+      updateItem("risks", editingId, { ...form, assetId: form.assetId || undefined });
+    } else {
+      addRisk({ ...form, assetId: form.assetId || undefined });
+    }
+    setForm(DEFAULT_FORM);
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -55,26 +75,27 @@ export default function RisksPage() {
           <h1 className="text-2xl font-display font-bold text-foreground">Risk Management</h1>
           <p className="text-muted-foreground mt-1">Identify, assess, and monitor risks</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add Risk</Button></DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle className="font-display">New Risk</DialogTitle></DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label className="text-white">Risk Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as Risk["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="operational">Operational</SelectItem><SelectItem value="financial">Financial</SelectItem><SelectItem value="compliance">Compliance</SelectItem><SelectItem value="strategic">Strategic</SelectItem></SelectContent></Select></div>
-                <div><Label className="text-white">Linked Asset</Label><Select value={form.assetId} onValueChange={(v) => setForm({ ...form, assetId: v })}><SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger><SelectContent>{data.assets.map((a) => (<SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>))}</SelectContent></Select></div>
-                <div><Label className="text-white">Owner</Label><Input required value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} /></div>
-                <div><Label className="text-white">Probability (1-5)</Label><Input type="number" min={1} max={5} value={form.probability} onChange={(e) => setForm({ ...form, probability: +e.target.value })} /></div>
-                <div><Label className="text-white">Impact (1-5)</Label><Input type="number" min={1} max={5} value={form.impact} onChange={(e) => setForm({ ...form, impact: +e.target.value })} /></div>
-              </div>
-              <div><Label className="text-white">Mitigation Strategy</Label><Textarea value={form.mitigationStrategy} onChange={(e) => setForm({ ...form, mitigationStrategy: e.target.value })} /></div>
-              <div><Label className="text-white">Regulatory Reference</Label><Input placeholder="e.g., POPIA Section 19" value={form.regulatoryRef} onChange={(e) => setForm({ ...form, regulatoryRef: e.target.value })} /></div>
-              <button type="submit" className="glass-btn-primary">Create Risk</button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setOpen(true)} className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add Risk</Button>
       </div>
+
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle className="font-display">{editingId ? "Edit Risk" : "New Risk"}</DialogTitle></DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label className="text-white">Risk Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+              <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as Risk["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="operational">Operational</SelectItem><SelectItem value="financial">Financial</SelectItem><SelectItem value="compliance">Compliance</SelectItem><SelectItem value="strategic">Strategic</SelectItem></SelectContent></Select></div>
+              <div><Label className="text-white">Linked Asset</Label><Select value={form.assetId} onValueChange={(v) => setForm({ ...form, assetId: v })}><SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger><SelectContent>{data.assets.map((a) => (<SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>))}</SelectContent></Select></div>
+              <div><Label className="text-white">Owner</Label><Input required value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} /></div>
+              <div><Label className="text-white">Probability (1-5)</Label><Input type="number" min={1} max={5} value={form.probability} onChange={(e) => setForm({ ...form, probability: +e.target.value })} /></div>
+              <div><Label className="text-white">Impact (1-5)</Label><Input type="number" min={1} max={5} value={form.impact} onChange={(e) => setForm({ ...form, impact: +e.target.value })} /></div>
+            </div>
+            <div><Label className="text-white">Mitigation Strategy</Label><Textarea value={form.mitigationStrategy} onChange={(e) => setForm({ ...form, mitigationStrategy: e.target.value })} /></div>
+            <div><Label className="text-white">Regulatory Reference</Label><Input placeholder="e.g., POPIA Section 19" value={form.regulatoryRef} onChange={(e) => setForm({ ...form, regulatoryRef: e.target.value })} /></div>
+            <button type="submit" className="glass-btn-primary">{editingId ? "Save Changes" : "Create Risk"}</button>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Module Dashboard */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -116,7 +137,7 @@ export default function RisksPage() {
       ) : (
         <div className="glass-card overflow-hidden">
           <table className="w-full glass-table">
-            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Risk</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Score</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Owner</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Regulation</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
+            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Risk</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Score</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Owner</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Regulation</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th><th className="px-4 py-3"></th></tr></thead>
             <tbody>
               {risks.map((r) => (
                 <tr key={r.id} className="border-b last:border-0 transition-colors" style={{ borderColor: "var(--glass-border)" }}>
@@ -126,6 +147,18 @@ export default function RisksPage() {
                   <td className="px-4 py-3 text-sm text-muted-foreground">{r.owner}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{r.regulatoryRef || "—"}</td>
                   <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => openEdit(r)} className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild><button className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-severity-high transition-colors"><Trash2 className="w-3.5 h-3.5" /></button></AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader><AlertDialogTitle>Delete Risk?</AlertDialogTitle><AlertDialogDescription>This will permanently delete "{r.name}". This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => deleteItem("risks", r.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

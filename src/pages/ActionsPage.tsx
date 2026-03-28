@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { SeverityBadge, StatusBadge } from "@/components/ui/severity-badge";
 import { StatCard } from "@/components/ui/stat-card";
-import { Plus, ListTodo, Clock, CheckCircle2, AlertOctagon, Timer } from "lucide-react";
+import { Plus, ListTodo, Clock, CheckCircle2, AlertOctagon, Timer, Pencil, Trash2 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { motion } from "framer-motion";
 
@@ -22,17 +23,36 @@ const GlassTooltip = ({ active, payload }: any) => {
   );
 };
 
+const DEFAULT_FORM = { name: "", relatedType: "incident" as ActionItem["relatedType"], relatedId: "", assignedTo: "", priority: "medium" as ActionItem["priority"], startDate: "", dueDate: "", status: "open" as ActionItem["status"], notes: "", estimatedImpactOfDelay: "" };
+
 export default function ActionsPage() {
-  const { data, addAction } = useGRC();
+  const { data, addAction, updateItem, deleteItem } = useGRC();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", relatedType: "incident" as ActionItem["relatedType"], relatedId: "", assignedTo: "", priority: "medium" as ActionItem["priority"], startDate: "", dueDate: "", status: "open" as ActionItem["status"], notes: "", estimatedImpactOfDelay: "" });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(DEFAULT_FORM);
 
   const relatedOptions = form.relatedType === "risk" ? data.risks : form.relatedType === "incident" ? data.incidents : data.audits;
 
+  const handleOpenChange = (v: boolean) => {
+    setOpen(v);
+    if (!v) { setEditingId(null); setForm(DEFAULT_FORM); }
+  };
+
+  const openEdit = (a: ActionItem) => {
+    setForm({ name: a.name, relatedType: a.relatedType, relatedId: a.relatedId, assignedTo: a.assignedTo, priority: a.priority, startDate: a.startDate || "", dueDate: a.dueDate, status: a.status, notes: a.notes, estimatedImpactOfDelay: a.estimatedImpactOfDelay });
+    setEditingId(a.id);
+    setOpen(true);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addAction(form);
-    setForm({ name: "", relatedType: "incident", relatedId: "", assignedTo: "", priority: "medium", startDate: "", dueDate: "", status: "open", notes: "", estimatedImpactOfDelay: "" });
+    if (editingId) {
+      updateItem("actions", editingId, form);
+    } else {
+      addAction(form);
+    }
+    setForm(DEFAULT_FORM);
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -56,26 +76,27 @@ export default function ActionsPage() {
           <h1 className="text-2xl font-display font-bold text-foreground">Action Plans</h1>
           <p className="text-muted-foreground mt-1">Track mitigation actions and task follow-ups</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add Action</Button></DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle className="font-display">New Action Item</DialogTitle></DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label className="text-white">Action Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label className="text-white">Priority</Label><Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v as ActionItem["priority"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
-                <div><Label className="text-white">Related To</Label><Select value={form.relatedType} onValueChange={(v) => setForm({ ...form, relatedType: v as ActionItem["relatedType"], relatedId: "" })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="incident">Incident</SelectItem><SelectItem value="risk">Risk</SelectItem><SelectItem value="audit">Audit</SelectItem></SelectContent></Select></div>
-                <div><Label className="text-white">Linked Item</Label><Select value={form.relatedId} onValueChange={(v) => setForm({ ...form, relatedId: v })}><SelectTrigger><SelectValue placeholder="Select item" /></SelectTrigger><SelectContent>{relatedOptions.map((o: any) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent></Select></div>
-                <div><Label className="text-white">Assigned To</Label><Input required value={form.assignedTo} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })} /></div>
-                <div><Label className="text-white">Due Date</Label><Input type="date" required value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></div>
-              </div>
-              <div><Label className="text-white">Impact of Delay</Label><Input placeholder="e.g., R50,000 fine, POPIA breach" value={form.estimatedImpactOfDelay} onChange={(e) => setForm({ ...form, estimatedImpactOfDelay: e.target.value })} /></div>
-              <div><Label className="text-white">Notes</Label><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
-              <button type="submit" className="glass-btn-primary">Create Action</button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setOpen(true)} className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add Action</Button>
       </div>
+
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle className="font-display">{editingId ? "Edit Action" : "New Action Item"}</DialogTitle></DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label className="text-white">Action Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+              <div><Label className="text-white">Priority</Label><Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v as ActionItem["priority"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
+              <div><Label className="text-white">Related To</Label><Select value={form.relatedType} onValueChange={(v) => setForm({ ...form, relatedType: v as ActionItem["relatedType"], relatedId: "" })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="incident">Incident</SelectItem><SelectItem value="risk">Risk</SelectItem><SelectItem value="audit">Audit</SelectItem></SelectContent></Select></div>
+              <div><Label className="text-white">Linked Item</Label><Select value={form.relatedId} onValueChange={(v) => setForm({ ...form, relatedId: v })}><SelectTrigger><SelectValue placeholder="Select item" /></SelectTrigger><SelectContent>{relatedOptions.map((o: any) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent></Select></div>
+              <div><Label className="text-white">Assigned To</Label><Input required value={form.assignedTo} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })} /></div>
+              <div><Label className="text-white">Due Date</Label><Input type="date" required value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></div>
+            </div>
+            <div><Label className="text-white">Impact of Delay</Label><Input placeholder="e.g., R50,000 fine, POPIA breach" value={form.estimatedImpactOfDelay} onChange={(e) => setForm({ ...form, estimatedImpactOfDelay: e.target.value })} /></div>
+            <div><Label className="text-white">Notes</Label><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+            <button type="submit" className="glass-btn-primary">{editingId ? "Save Changes" : "Create Action"}</button>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Module Dashboard */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -135,7 +156,7 @@ export default function ActionsPage() {
       ) : (
         <div className="glass-card overflow-hidden">
           <table className="w-full glass-table">
-            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Action</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Priority</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Linked To</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Assigned</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Due Date</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
+            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Action</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Priority</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Linked To</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Assigned</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Due Date</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th><th className="px-4 py-3"></th></tr></thead>
             <tbody>
               {actions.map((a) => (
                 <tr key={a.id} className="border-b last:border-0 transition-colors" style={{ borderColor: "var(--glass-border)" }}>
@@ -145,6 +166,18 @@ export default function ActionsPage() {
                   <td className="px-4 py-3 text-sm text-muted-foreground">{a.assignedTo}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{new Date(a.dueDate).toLocaleDateString()}</td>
                   <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild><button className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-severity-high transition-colors"><Trash2 className="w-3.5 h-3.5" /></button></AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader><AlertDialogTitle>Delete Action?</AlertDialogTitle><AlertDialogDescription>This will permanently delete "{a.name}". This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => deleteItem("actions", a.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

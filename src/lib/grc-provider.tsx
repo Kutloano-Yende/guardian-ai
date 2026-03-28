@@ -132,6 +132,16 @@ export function GRCProvider({ children }: { children: ReactNode }) {
     }));
   }, [user]);
 
+  const deleteItem: GRCContextType["deleteItem"] = useCallback(async (collection, id) => {
+    if (!user) return;
+    const { error } = await (supabase.from(collection as any) as any).delete().eq("id", id);
+    if (error) { toast.error("Failed to delete"); return; }
+    setData((prev) => ({
+      ...prev,
+      [collection]: (prev[collection] as any[]).filter((item: any) => item.id !== id),
+    }));
+  }, [user]);
+
   const getLinkedItems: GRCContextType["getLinkedItems"] = useCallback((type, id) => {
     const linked: Record<string, any[]> = {};
     if (type === "asset") {
@@ -147,7 +157,7 @@ export function GRCProvider({ children }: { children: ReactNode }) {
   }, [data]);
 
   return (
-    <GRCContext.Provider value={{ data, addAsset, addRisk, addIncident, addAudit, addCompliance, addAction, addPerformance, updateItem, getLinkedItems }}>
+    <GRCContext.Provider value={{ data, addAsset, addRisk, addIncident, addAudit, addCompliance, addAction, addPerformance, updateItem, deleteItem, getLinkedItems }}>
       {children}
     </GRCContext.Provider>
   );
