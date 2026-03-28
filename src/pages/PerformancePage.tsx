@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { StatCard } from "@/components/ui/stat-card";
-import { Plus, BarChart3, Target, TrendingUp, AlertTriangle } from "lucide-react";
+import { Plus, BarChart3, Target, TrendingUp, AlertTriangle, Pencil, Trash2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import { motion } from "framer-motion";
@@ -21,15 +22,34 @@ const GlassTooltip = ({ active, payload, label }: any) => {
   );
 };
 
+const DEFAULT_FORM = { name: "", department: "", target: 100, actual: 0, unit: "%", responsible: "", status: "on_track" as PerformanceKPI["status"], linkedRiskIds: [] as string[] };
+
 export default function PerformancePage() {
-  const { data, addPerformance } = useGRC();
+  const { data, addPerformance, updateItem, deleteItem } = useGRC();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", department: "", target: 100, actual: 0, unit: "%", responsible: "", status: "on_track" as PerformanceKPI["status"], linkedRiskIds: [] as string[] });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(DEFAULT_FORM);
+
+  const handleOpenChange = (v: boolean) => {
+    setOpen(v);
+    if (!v) { setEditingId(null); setForm(DEFAULT_FORM); }
+  };
+
+  const openEdit = (kpi: PerformanceKPI) => {
+    setForm({ name: kpi.name, department: kpi.department, target: kpi.target, actual: kpi.actual, unit: kpi.unit, responsible: kpi.responsible, status: kpi.status, linkedRiskIds: kpi.linkedRiskIds });
+    setEditingId(kpi.id);
+    setOpen(true);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addPerformance(form);
-    setForm({ name: "", department: "", target: 100, actual: 0, unit: "%", responsible: "", status: "on_track", linkedRiskIds: [] });
+    if (editingId) {
+      updateItem("performance", editingId, form);
+    } else {
+      addPerformance(form);
+    }
+    setForm(DEFAULT_FORM);
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -54,25 +74,26 @@ export default function PerformancePage() {
           <h1 className="text-2xl font-display font-bold text-foreground">Performance Management</h1>
           <p className="text-muted-foreground mt-1">Monitor KPIs, targets, and operational efficiency</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add KPI</Button></DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle className="font-display">New KPI</DialogTitle></DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label className="text-white">KPI Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label className="text-white">Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
-                <div><Label className="text-white">Target</Label><Input type="number" required value={form.target} onChange={(e) => setForm({ ...form, target: +e.target.value })} /></div>
-                <div><Label className="text-white">Actual</Label><Input type="number" required value={form.actual} onChange={(e) => setForm({ ...form, actual: +e.target.value })} /></div>
-                <div><Label className="text-white">Unit</Label><Input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></div>
-                <div><Label className="text-white">Responsible</Label><Input required value={form.responsible} onChange={(e) => setForm({ ...form, responsible: e.target.value })} /></div>
-                <div><Label className="text-white">Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as PerformanceKPI["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="on_track">On Track</SelectItem><SelectItem value="at_risk">At Risk</SelectItem><SelectItem value="off_track">Off Track</SelectItem></SelectContent></Select></div>
-              </div>
-              <button type="submit" className="glass-btn-primary">Add KPI</button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setOpen(true)} className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add KPI</Button>
       </div>
+
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle className="font-display">{editingId ? "Edit KPI" : "New KPI"}</DialogTitle></DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label className="text-white">KPI Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+              <div><Label className="text-white">Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
+              <div><Label className="text-white">Target</Label><Input type="number" required value={form.target} onChange={(e) => setForm({ ...form, target: +e.target.value })} /></div>
+              <div><Label className="text-white">Actual</Label><Input type="number" required value={form.actual} onChange={(e) => setForm({ ...form, actual: +e.target.value })} /></div>
+              <div><Label className="text-white">Unit</Label><Input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></div>
+              <div><Label className="text-white">Responsible</Label><Input required value={form.responsible} onChange={(e) => setForm({ ...form, responsible: e.target.value })} /></div>
+              <div><Label className="text-white">Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as PerformanceKPI["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="on_track">On Track</SelectItem><SelectItem value="at_risk">At Risk</SelectItem><SelectItem value="off_track">Off Track</SelectItem></SelectContent></Select></div>
+            </div>
+            <button type="submit" className="glass-btn-primary">{editingId ? "Save Changes" : "Add KPI"}</button>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Module Dashboard */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -116,7 +137,17 @@ export default function PerformancePage() {
               <div key={kpi.id} className="glass-card p-5">
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="font-display font-semibold text-foreground text-sm">{kpi.name}</h3>
-                  <span className={`text-xs font-semibold capitalize ${statusColors[kpi.status]}`}>{kpi.status.replace("_", " ")}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-semibold capitalize ${statusColors[kpi.status]}`}>{kpi.status.replace("_", " ")}</span>
+                    <button onClick={() => openEdit(kpi)} className="p-1 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild><button className="p-1 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-severity-high transition-colors"><Trash2 className="w-3.5 h-3.5" /></button></AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader><AlertDialogTitle>Delete KPI?</AlertDialogTitle><AlertDialogDescription>This will permanently delete "{kpi.name}". This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                        <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => deleteItem("performance", kpi.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm text-muted-foreground">

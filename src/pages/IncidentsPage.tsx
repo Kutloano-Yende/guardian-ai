@@ -4,10 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { SeverityBadge, StatusBadge } from "@/components/ui/severity-badge";
 import { StatCard } from "@/components/ui/stat-card";
-import { Plus, FileWarning, Clock, AlertOctagon, CheckCircle2, Timer } from "lucide-react";
+import { Plus, FileWarning, Clock, AlertOctagon, CheckCircle2, Timer, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import { PieChart, Pie, Cell as PieCell } from "recharts";
@@ -25,19 +26,34 @@ const GlassTooltip = ({ active, payload, label }: any) => {
   );
 };
 
+const DEFAULT_FORM = { name: "", type: "Other", reportedBy: "", department: "", severity: "medium" as Incident["severity"], assetId: "", riskId: "", assignedTo: "", status: "open" as Incident["status"], regulatoryImpact: "", deadline: "", description: "" };
+
 export default function IncidentsPage() {
-  const { data, addIncident } = useGRC();
+  const { data, addIncident, updateItem, deleteItem } = useGRC();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({
-    name: "", type: "Other", reportedBy: "", department: "", severity: "medium" as Incident["severity"],
-    assetId: "", riskId: "", assignedTo: "", status: "open" as Incident["status"],
-    regulatoryImpact: "", deadline: "", description: ""
-  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(DEFAULT_FORM);
+
+  const handleOpenChange = (v: boolean) => {
+    setOpen(v);
+    if (!v) { setEditingId(null); setForm(DEFAULT_FORM); }
+  };
+
+  const openEdit = (inc: Incident) => {
+    setForm({ name: inc.name, type: inc.type, reportedBy: inc.reportedBy, department: inc.department, severity: inc.severity, assetId: inc.assetId || "", riskId: inc.riskId || "", assignedTo: inc.assignedTo, status: inc.status, regulatoryImpact: inc.regulatoryImpact, deadline: inc.deadline || "", description: inc.description });
+    setEditingId(inc.id);
+    setOpen(true);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addIncident({ ...form, assetId: form.assetId || undefined, riskId: form.riskId || undefined });
-    setForm({ name: "", type: "Other", reportedBy: "", department: "", severity: "medium", assetId: "", riskId: "", assignedTo: "", status: "open", regulatoryImpact: "", deadline: "", description: "" });
+    if (editingId) {
+      updateItem("incidents", editingId, { ...form, assetId: form.assetId || undefined, riskId: form.riskId || undefined });
+    } else {
+      addIncident({ ...form, assetId: form.assetId || undefined, riskId: form.riskId || undefined });
+    }
+    setForm(DEFAULT_FORM);
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -67,29 +83,30 @@ export default function IncidentsPage() {
           <h1 className="text-2xl font-display font-bold text-foreground">Incident Management</h1>
           <p className="text-muted-foreground mt-1">Capture, track, and resolve incidents in real-time</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Report Incident</Button></DialogTrigger>
-          <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-            <DialogHeader><DialogTitle className="font-display">Report Incident</DialogTitle></DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label className="text-white">Incident Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{incidentTypes.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
-                <div><Label className="text-white">Reported By</Label><Input required value={form.reportedBy} onChange={(e) => setForm({ ...form, reportedBy: e.target.value })} /></div>
-                <div><Label className="text-white">Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
-                <div><Label className="text-white">Severity</Label><Select value={form.severity} onValueChange={(v) => setForm({ ...form, severity: v as Incident["severity"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
-                <div><Label className="text-white">Assigned To</Label><Input required value={form.assignedTo} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })} /></div>
-                <div><Label className="text-white">Linked Asset</Label><Select value={form.assetId} onValueChange={(v) => setForm({ ...form, assetId: v })}><SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger><SelectContent>{data.assets.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent></Select></div>
-                <div><Label className="text-white">Linked Risk</Label><Select value={form.riskId} onValueChange={(v) => setForm({ ...form, riskId: v })}><SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger><SelectContent>{data.risks.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}</SelectContent></Select></div>
-                <div><Label className="text-white">Resolution Deadline</Label><Input type="date" value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} /></div>
-              </div>
-              <div><Label className="text-white">Regulatory Impact</Label><Input placeholder="e.g., POPIA violation, possible fine R50,000" value={form.regulatoryImpact} onChange={(e) => setForm({ ...form, regulatoryImpact: e.target.value })} /></div>
-              <div><Label className="text-white">Description</Label><Textarea required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-              <button type="submit" className="glass-btn-primary">Submit Incident</button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setOpen(true)} className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Report Incident</Button>
       </div>
+
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle className="font-display">{editingId ? "Edit Incident" : "Report Incident"}</DialogTitle></DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label className="text-white">Incident Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+              <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{incidentTypes.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
+              <div><Label className="text-white">Reported By</Label><Input required value={form.reportedBy} onChange={(e) => setForm({ ...form, reportedBy: e.target.value })} /></div>
+              <div><Label className="text-white">Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
+              <div><Label className="text-white">Severity</Label><Select value={form.severity} onValueChange={(v) => setForm({ ...form, severity: v as Incident["severity"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
+              <div><Label className="text-white">Assigned To</Label><Input required value={form.assignedTo} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })} /></div>
+              <div><Label className="text-white">Linked Asset</Label><Select value={form.assetId} onValueChange={(v) => setForm({ ...form, assetId: v })}><SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger><SelectContent>{data.assets.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent></Select></div>
+              <div><Label className="text-white">Linked Risk</Label><Select value={form.riskId} onValueChange={(v) => setForm({ ...form, riskId: v })}><SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger><SelectContent>{data.risks.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}</SelectContent></Select></div>
+              <div><Label className="text-white">Resolution Deadline</Label><Input type="date" value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} /></div>
+            </div>
+            <div><Label className="text-white">Regulatory Impact</Label><Input placeholder="e.g., POPIA violation, possible fine R50,000" value={form.regulatoryImpact} onChange={(e) => setForm({ ...form, regulatoryImpact: e.target.value })} /></div>
+            <div><Label className="text-white">Description</Label><Textarea required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+            <button type="submit" className="glass-btn-primary">{editingId ? "Save Changes" : "Submit Incident"}</button>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Module Dashboard */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -158,7 +175,7 @@ export default function IncidentsPage() {
       ) : (
         <div className="glass-card overflow-hidden">
           <table className="w-full glass-table">
-            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Incident</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Severity</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Assigned To</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Deadline</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th></tr></thead>
+            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Incident</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Severity</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Assigned To</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Deadline</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th><th className="px-4 py-3"></th></tr></thead>
             <tbody>
               {incidents.map((inc) => (
                 <tr key={inc.id} className="border-b last:border-0 transition-colors" style={{ borderColor: "var(--glass-border)" }}>
@@ -168,6 +185,18 @@ export default function IncidentsPage() {
                   <td className="px-4 py-3 text-sm text-muted-foreground">{inc.assignedTo}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{inc.deadline ? new Date(inc.deadline).toLocaleDateString() : "—"}</td>
                   <td className="px-4 py-3"><StatusBadge status={inc.status} /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => openEdit(inc)} className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild><button className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-severity-high transition-colors"><Trash2 className="w-3.5 h-3.5" /></button></AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader><AlertDialogTitle>Delete Incident?</AlertDialogTitle><AlertDialogDescription>This will permanently delete "{inc.name}". This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => deleteItem("incidents", inc.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

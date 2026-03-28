@@ -124,6 +124,7 @@ export interface GRCContextType {
   addAction: (a: Omit<ActionItem, "id" | "createdAt">) => void;
   addPerformance: (p: Omit<PerformanceKPI, "id" | "createdAt">) => void;
   updateItem: <T extends keyof GRCData>(collection: T, id: string, updates: Partial<GRCData[T][number]>) => void;
+  deleteItem: <T extends keyof GRCData>(collection: T, id: string) => void;
   getLinkedItems: (type: string, id: string) => Record<string, any[]>;
 }
 

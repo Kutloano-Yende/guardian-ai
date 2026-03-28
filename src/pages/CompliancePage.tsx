@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { StatCard } from "@/components/ui/stat-card";
 import { ComplianceDonut } from "@/components/charts/ComplianceDonut";
-import { Plus, Shield, CheckCircle2, XCircle, Search } from "lucide-react";
+import { Plus, Shield, CheckCircle2, XCircle, Search, Pencil, Trash2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import { motion } from "framer-motion";
 
@@ -22,15 +23,34 @@ const GlassTooltip = ({ active, payload, label }: any) => {
   );
 };
 
+const DEFAULT_FORM = { name: "", type: "sa_law" as ComplianceRecord["type"], department: "", owner: "", enforcement: "", consequences: "", lastReviewed: "", status: "under_review" as ComplianceRecord["status"] };
+
 export default function CompliancePage() {
-  const { data, addCompliance } = useGRC();
+  const { data, addCompliance, updateItem, deleteItem } = useGRC();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", type: "sa_law" as ComplianceRecord["type"], department: "", owner: "", enforcement: "", consequences: "", lastReviewed: "", status: "under_review" as ComplianceRecord["status"] });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(DEFAULT_FORM);
+
+  const handleOpenChange = (v: boolean) => {
+    setOpen(v);
+    if (!v) { setEditingId(null); setForm(DEFAULT_FORM); }
+  };
+
+  const openEdit = (c: ComplianceRecord) => {
+    setForm({ name: c.name, type: c.type, department: c.department, owner: c.owner, enforcement: c.enforcement, consequences: c.consequences, lastReviewed: c.lastReviewed || "", status: c.status });
+    setEditingId(c.id);
+    setOpen(true);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addCompliance(form);
-    setForm({ name: "", type: "sa_law", department: "", owner: "", enforcement: "", consequences: "", lastReviewed: "", status: "under_review" });
+    if (editingId) {
+      updateItem("compliance", editingId, form);
+    } else {
+      addCompliance(form);
+    }
+    setForm(DEFAULT_FORM);
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -55,26 +75,27 @@ export default function CompliancePage() {
           <h1 className="text-2xl font-display font-bold text-foreground">Compliance Management</h1>
           <p className="text-muted-foreground mt-1">Ensure regulatory adherence and policy compliance</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add Policy</Button></DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle className="font-display">New Compliance Record</DialogTitle></DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label className="text-white">Policy / Regulation Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as ComplianceRecord["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="internal_policy">Internal Policy</SelectItem><SelectItem value="sa_law">SA Law</SelectItem><SelectItem value="international_standard">International Standard</SelectItem></SelectContent></Select></div>
-                <div><Label className="text-white">Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
-                <div><Label className="text-white">Owner</Label><Input required value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} /></div>
-                <div><Label className="text-white">Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as ComplianceRecord["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="compliant">Compliant</SelectItem><SelectItem value="non_compliant">Non-Compliant</SelectItem><SelectItem value="under_review">Under Review</SelectItem></SelectContent></Select></div>
-                <div><Label className="text-white">Last Reviewed</Label><Input type="date" value={form.lastReviewed} onChange={(e) => setForm({ ...form, lastReviewed: e.target.value })} /></div>
-              </div>
-              <div><Label className="text-white">Enforcement Mechanism</Label><Input value={form.enforcement} onChange={(e) => setForm({ ...form, enforcement: e.target.value })} /></div>
-              <div><Label className="text-white">Consequences for Non-Compliance</Label><Textarea value={form.consequences} onChange={(e) => setForm({ ...form, consequences: e.target.value })} /></div>
-              <button type="submit" className="glass-btn-primary">Add Record</button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setOpen(true)} className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add Policy</Button>
       </div>
+
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle className="font-display">{editingId ? "Edit Compliance Record" : "New Compliance Record"}</DialogTitle></DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label className="text-white">Policy / Regulation Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+              <div><Label className="text-white">Type</Label><Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as ComplianceRecord["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="internal_policy">Internal Policy</SelectItem><SelectItem value="sa_law">SA Law</SelectItem><SelectItem value="international_standard">International Standard</SelectItem></SelectContent></Select></div>
+              <div><Label className="text-white">Department</Label><Input required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
+              <div><Label className="text-white">Owner</Label><Input required value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} /></div>
+              <div><Label className="text-white">Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as ComplianceRecord["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="compliant">Compliant</SelectItem><SelectItem value="non_compliant">Non-Compliant</SelectItem><SelectItem value="under_review">Under Review</SelectItem></SelectContent></Select></div>
+              <div><Label className="text-white">Last Reviewed</Label><Input type="date" value={form.lastReviewed} onChange={(e) => setForm({ ...form, lastReviewed: e.target.value })} /></div>
+            </div>
+            <div><Label className="text-white">Enforcement Mechanism</Label><Input value={form.enforcement} onChange={(e) => setForm({ ...form, enforcement: e.target.value })} /></div>
+            <div><Label className="text-white">Consequences for Non-Compliance</Label><Textarea value={form.consequences} onChange={(e) => setForm({ ...form, consequences: e.target.value })} /></div>
+            <button type="submit" className="glass-btn-primary">{editingId ? "Save Changes" : "Add Record"}</button>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Module Dashboard */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -119,7 +140,17 @@ export default function CompliancePage() {
             <div key={c.id} className="glass-card p-5">
               <div className="flex items-start justify-between mb-3">
                 <h3 className="font-display font-semibold text-foreground">{c.name}</h3>
-                <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusColors[c.status]}`}>{c.status.replace("_", " ")}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusColors[c.status]}`}>{c.status.replace("_", " ")}</span>
+                  <button onClick={() => openEdit(c)} className="p-1 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild><button className="p-1 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-severity-high transition-colors"><Trash2 className="w-3.5 h-3.5" /></button></AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader><AlertDialogTitle>Delete Compliance Record?</AlertDialogTitle><AlertDialogDescription>This will permanently delete "{c.name}". This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                      <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => deleteItem("compliance", c.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
               <div className="space-y-1.5 text-sm text-muted-foreground">
                 <p>Type: <span className="capitalize">{c.type.replace("_", " ")}</span></p>
