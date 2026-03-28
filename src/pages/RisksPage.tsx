@@ -6,22 +6,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { StatusBadge } from "@/components/ui/severity-badge";
 import { StatCard } from "@/components/ui/stat-card";
 import { RiskHeatMap } from "@/components/charts/RiskHeatMap";
-import { Plus, AlertTriangle, ShieldAlert, Target, TrendingDown, Pencil, Trash2 } from "lucide-react";
+import { Plus, AlertTriangle, ShieldAlert, Target, TrendingDown, MoreHorizontal, Pencil, Archive, Trash2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import { motion } from "framer-motion";
 
 const GlassTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
-  return (
-    <div className="rounded-xl px-3 py-2 text-xs font-medium text-white shadow-lg"
-      style={{ background: "rgba(15, 23, 42, 0.9)", backdropFilter: "blur(8px)" }}>
-      {label}: {payload[0].value}
-    </div>
-  );
+  return (<div className="rounded-xl px-3 py-2 text-xs font-medium text-white shadow-lg" style={{ background: "rgba(15, 23, 42, 0.9)", backdropFilter: "blur(8px)" }}>{label}: {payload[0].value}</div>);
 };
 
 const DEFAULT_FORM = { name: "", type: "operational" as Risk["type"], assetId: "", probability: 3, impact: 3, mitigationStrategy: "", owner: "", status: "open" as Risk["status"], regulatoryRef: "" };
@@ -30,37 +26,19 @@ export default function RisksPage() {
   const { data, addRisk, updateItem, deleteItem } = useGRC();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Risk | null>(null);
   const [form, setForm] = useState(DEFAULT_FORM);
 
-  const handleOpenChange = (v: boolean) => {
-    setOpen(v);
-    if (!v) { setEditingId(null); setForm(DEFAULT_FORM); }
-  };
-
-  const openEdit = (r: Risk) => {
-    setForm({ name: r.name, type: r.type, assetId: r.assetId || "", probability: r.probability, impact: r.impact, mitigationStrategy: r.mitigationStrategy, owner: r.owner, status: r.status, regulatoryRef: r.regulatoryRef });
-    setEditingId(r.id);
-    setOpen(true);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingId) {
-      updateItem("risks", editingId, { ...form, assetId: form.assetId || undefined });
-    } else {
-      addRisk({ ...form, assetId: form.assetId || undefined });
-    }
-    setForm(DEFAULT_FORM);
-    setEditingId(null);
-    setOpen(false);
-  };
+  const handleOpenChange = (v: boolean) => { setOpen(v); if (!v) { setEditingId(null); setForm(DEFAULT_FORM); } };
+  const openEdit = (r: Risk) => { setForm({ name: r.name, type: r.type, assetId: r.assetId || "", probability: r.probability, impact: r.impact, mitigationStrategy: r.mitigationStrategy, owner: r.owner, status: r.status, regulatoryRef: r.regulatoryRef }); setEditingId(r.id); setOpen(true); };
+  const handleArchive = (r: Risk) => { updateItem("risks", r.id, { status: "closed" as any }); };
+  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); if (editingId) { updateItem("risks", editingId, { ...form, assetId: form.assetId || undefined }); } else { addRisk({ ...form, assetId: form.assetId || undefined }); } setForm(DEFAULT_FORM); setEditingId(null); setOpen(false); };
 
   const risks = data.risks;
   const openRisks = risks.filter((r) => r.status === "open");
   const criticalRisks = risks.filter((r) => r.probability * r.impact >= 15);
   const resolvedRisks = risks.filter((r) => r.status === "resolved" || r.status === "closed");
   const avgScore = risks.length > 0 ? (risks.reduce((s, r) => s + r.probability * r.impact, 0) / risks.length).toFixed(1) : "0";
-
   const typeData = [
     { type: "Operational", count: risks.filter((r) => r.type === "operational").length, fill: "hsl(211, 65%, 45%)" },
     { type: "Financial", count: risks.filter((r) => r.type === "financial").length, fill: "hsl(40, 95%, 50%)" },
@@ -71,10 +49,7 @@ export default function RisksPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Risk Management</h1>
-          <p className="text-muted-foreground mt-1">Identify, assess, and monitor risks</p>
-        </div>
+        <div><h1 className="text-2xl font-display font-bold text-foreground">Risk Management</h1><p className="text-muted-foreground mt-1">Identify, assess, and monitor risks</p></div>
         <Button onClick={() => setOpen(true)} className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Add Risk</Button>
       </div>
 
@@ -100,7 +75,10 @@ export default function RisksPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Module Dashboard */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}>
+        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete Risk?</AlertDialogTitle><AlertDialogDescription>This will permanently delete "{deleteTarget?.name}". This action cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => { if (deleteTarget) { deleteItem("risks", deleteTarget.id); setDeleteTarget(null); } }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+      </AlertDialog>
+
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Risks" value={risks.length} icon={AlertTriangle} color="primary" subtitle={`${openRisks.length} open`} />
         <StatCard title="Critical Risks" value={criticalRisks.length} icon={ShieldAlert} color="destructive" subtitle="Score ≥ 15" />
@@ -113,37 +91,20 @@ export default function RisksPage() {
           <RiskHeatMap risks={risks} />
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-5">
             <h3 className="font-display font-semibold text-foreground mb-4">Risks by Type</h3>
-            <div className="h-52">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={typeData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                  <XAxis dataKey="type" tick={{ fontSize: 11, fill: "hsl(215, 12%, 50%)" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: "hsl(215, 12%, 50%)" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip content={<GlassTooltip />} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
-                  <Bar dataKey="count" radius={[6, 6, 0, 0]} animationDuration={800}>
-                    {typeData.map((e, i) => <Cell key={i} fill={e.fill} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <div className="h-52"><ResponsiveContainer width="100%" height="100%"><BarChart data={typeData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}><CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" /><XAxis dataKey="type" tick={{ fontSize: 11, fill: "hsl(215, 12%, 50%)" }} axisLine={false} tickLine={false} /><YAxis tick={{ fontSize: 11, fill: "hsl(215, 12%, 50%)" }} axisLine={false} tickLine={false} allowDecimals={false} /><Tooltip content={<GlassTooltip />} cursor={{ fill: "rgba(255,255,255,0.05)" }} /><Bar dataKey="count" radius={[6, 6, 0, 0]} animationDuration={800}>{typeData.map((e, i) => <Cell key={i} fill={e.fill} />)}</Bar></BarChart></ResponsiveContainer></div>
           </motion.div>
         </div>
       )}
 
-      {/* Data Table */}
       {risks.length === 0 ? (
-        <div className="glass-card p-12 text-center">
-          <AlertTriangle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="font-display font-semibold text-foreground">No risks registered</h3>
-          <p className="text-muted-foreground text-sm mt-1">Start by identifying and registering risks</p>
-        </div>
+        <div className="glass-card p-12 text-center"><AlertTriangle className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><h3 className="font-display font-semibold text-foreground">No risks registered</h3><p className="text-muted-foreground text-sm mt-1">Start by identifying and registering risks</p></div>
       ) : (
         <div className="glass-card overflow-hidden">
           <table className="w-full glass-table">
-            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Risk</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Score</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Owner</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Regulation</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th><th className="px-4 py-3"></th></tr></thead>
+            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Risk</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Score</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Owner</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Regulation</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th><th className="w-12 px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Action</th></tr></thead>
             <tbody>
               {risks.map((r) => (
-                <tr key={r.id} className="border-b last:border-0 transition-colors" style={{ borderColor: "var(--glass-border)" }}>
+                <tr key={r.id} className="border-b last:border-0 transition-colors hover:bg-white/[0.02]" style={{ borderColor: "var(--glass-border)" }}>
                   <td className="px-4 py-3 text-sm font-medium text-foreground">{r.name}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground capitalize">{r.type}</td>
                   <td className="px-4 py-3"><span className={`text-sm font-bold ${r.probability * r.impact >= 15 ? "text-severity-critical" : r.probability * r.impact >= 10 ? "text-severity-high" : "text-severity-medium"}`}>{r.probability * r.impact}</span></td>
@@ -151,16 +112,15 @@ export default function RisksPage() {
                   <td className="px-4 py-3 text-sm text-muted-foreground">{r.regulatoryRef || "—"}</td>
                   <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(r)} className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild><button className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-severity-high transition-colors"><Trash2 className="w-3.5 h-3.5" /></button></AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader><AlertDialogTitle>Delete Risk?</AlertDialogTitle><AlertDialogDescription>This will permanently delete "{r.name}". This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
-                          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => deleteItem("risks", r.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild><button className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"><MoreHorizontal className="w-4 h-4" /></button></DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => openEdit(r)}><Pencil className="w-4 h-4 mr-2" /> Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleArchive(r)}><Archive className="w-4 h-4 mr-2" /> Archive</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => setDeleteTarget(r)} className="text-destructive focus:text-destructive"><Trash2 className="w-4 h-4 mr-2" /> Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </td>
                 </tr>
               ))}
