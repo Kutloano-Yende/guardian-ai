@@ -5,10 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SeverityBadge, StatusBadge } from "@/components/ui/severity-badge";
 import { StatCard } from "@/components/ui/stat-card";
-import { Plus, FileWarning, Clock, AlertOctagon, CheckCircle2, Timer, Pencil, Trash2 } from "lucide-react";
+import { Plus, FileWarning, AlertOctagon, CheckCircle2, Timer, MoreHorizontal, Pencil, Archive, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import { PieChart, Pie, Cell as PieCell } from "recharts";
@@ -18,12 +19,7 @@ const incidentTypes = ["Data Breach", "Equipment Failure", "Safety Violation", "
 
 const GlassTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
-  return (
-    <div className="rounded-xl px-3 py-2 text-xs font-medium text-white shadow-lg"
-      style={{ background: "rgba(15, 23, 42, 0.9)", backdropFilter: "blur(8px)" }}>
-      {label || payload[0].name}: {payload[0].value}
-    </div>
-  );
+  return (<div className="rounded-xl px-3 py-2 text-xs font-medium text-white shadow-lg" style={{ background: "rgba(15, 23, 42, 0.9)", backdropFilter: "blur(8px)" }}>{label || payload[0].name}: {payload[0].value}</div>);
 };
 
 const DEFAULT_FORM = { name: "", type: "Other", reportedBy: "", department: "", severity: "medium" as Incident["severity"], assetId: "", riskId: "", assignedTo: "", status: "open" as Incident["status"], regulatoryImpact: "", deadline: "", description: "" };
@@ -32,44 +28,25 @@ export default function IncidentsPage() {
   const { data, addIncident, updateItem, deleteItem } = useGRC();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Incident | null>(null);
   const [form, setForm] = useState(DEFAULT_FORM);
 
-  const handleOpenChange = (v: boolean) => {
-    setOpen(v);
-    if (!v) { setEditingId(null); setForm(DEFAULT_FORM); }
-  };
-
-  const openEdit = (inc: Incident) => {
-    setForm({ name: inc.name, type: inc.type, reportedBy: inc.reportedBy, department: inc.department, severity: inc.severity, assetId: inc.assetId || "", riskId: inc.riskId || "", assignedTo: inc.assignedTo, status: inc.status, regulatoryImpact: inc.regulatoryImpact, deadline: inc.deadline || "", description: inc.description });
-    setEditingId(inc.id);
-    setOpen(true);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingId) {
-      updateItem("incidents", editingId, { ...form, assetId: form.assetId || undefined, riskId: form.riskId || undefined });
-    } else {
-      addIncident({ ...form, assetId: form.assetId || undefined, riskId: form.riskId || undefined });
-    }
-    setForm(DEFAULT_FORM);
-    setEditingId(null);
-    setOpen(false);
-  };
+  const handleOpenChange = (v: boolean) => { setOpen(v); if (!v) { setEditingId(null); setForm(DEFAULT_FORM); } };
+  const openEdit = (inc: Incident) => { setForm({ name: inc.name, type: inc.type, reportedBy: inc.reportedBy, department: inc.department, severity: inc.severity, assetId: inc.assetId || "", riskId: inc.riskId || "", assignedTo: inc.assignedTo, status: inc.status, regulatoryImpact: inc.regulatoryImpact, deadline: inc.deadline || "", description: inc.description }); setEditingId(inc.id); setOpen(true); };
+  const handleArchive = (inc: Incident) => { updateItem("incidents", inc.id, { status: "closed" as any }); };
+  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); if (editingId) { updateItem("incidents", editingId, { ...form, assetId: form.assetId || undefined, riskId: form.riskId || undefined }); } else { addIncident({ ...form, assetId: form.assetId || undefined, riskId: form.riskId || undefined }); } setForm(DEFAULT_FORM); setEditingId(null); setOpen(false); };
 
   const incidents = data.incidents;
   const openInc = incidents.filter((i) => i.status === "open");
   const inProgress = incidents.filter((i) => i.status === "in_progress");
   const resolved = incidents.filter((i) => i.status === "resolved" || i.status === "closed");
   const overdue = incidents.filter((i) => i.deadline && new Date(i.deadline) < new Date() && i.status !== "resolved" && i.status !== "closed");
-
   const sevData = [
     { severity: "Critical", count: incidents.filter((i) => i.severity === "critical").length, fill: "hsl(0, 75%, 55%)" },
     { severity: "High", count: incidents.filter((i) => i.severity === "high").length, fill: "hsl(25, 90%, 55%)" },
     { severity: "Medium", count: incidents.filter((i) => i.severity === "medium").length, fill: "hsl(40, 95%, 50%)" },
     { severity: "Low", count: incidents.filter((i) => i.severity === "low").length, fill: "hsl(165, 45%, 45%)" },
   ];
-
   const statusData = [
     { name: "Open", value: openInc.length, color: "hsl(25, 90%, 55%)" },
     { name: "In Progress", value: inProgress.length, color: "hsl(211, 65%, 45%)" },
@@ -79,10 +56,7 @@ export default function IncidentsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Incident Management</h1>
-          <p className="text-muted-foreground mt-1">Capture, track, and resolve incidents in real-time</p>
-        </div>
+        <div><h1 className="text-2xl font-display font-bold text-foreground">Incident Management</h1><p className="text-muted-foreground mt-1">Capture, track, and resolve incidents in real-time</p></div>
         <Button onClick={() => setOpen(true)} className="glass-btn-primary w-auto px-4 py-2"><Plus className="w-4 h-4 mr-2" /> Report Incident</Button>
       </div>
 
@@ -109,7 +83,10 @@ export default function IncidentsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Module Dashboard */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}>
+        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete Incident?</AlertDialogTitle><AlertDialogDescription>This will permanently delete "{deleteTarget?.name}". This action cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => { if (deleteTarget) { deleteItem("incidents", deleteTarget.id); setDeleteTarget(null); } }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+      </AlertDialog>
+
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Incidents" value={incidents.length} icon={FileWarning} color="primary" subtitle="All reported" />
         <StatCard title="Open" value={openInc.length} icon={AlertOctagon} color="severity-high" subtitle={`${inProgress.length} in progress`} />
@@ -121,65 +98,25 @@ export default function IncidentsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-5">
             <h3 className="font-display font-semibold text-foreground mb-4">By Severity</h3>
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={sevData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                  <XAxis dataKey="severity" tick={{ fontSize: 11, fill: "hsl(215, 12%, 50%)" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: "hsl(215, 12%, 50%)" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip content={<GlassTooltip />} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
-                  <Bar dataKey="count" radius={[6, 6, 0, 0]} animationDuration={800}>
-                    {sevData.map((e, i) => <Cell key={i} fill={e.fill} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <div className="h-48"><ResponsiveContainer width="100%" height="100%"><BarChart data={sevData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}><CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" /><XAxis dataKey="severity" tick={{ fontSize: 11, fill: "hsl(215, 12%, 50%)" }} axisLine={false} tickLine={false} /><YAxis tick={{ fontSize: 11, fill: "hsl(215, 12%, 50%)" }} axisLine={false} tickLine={false} allowDecimals={false} /><Tooltip content={<GlassTooltip />} cursor={{ fill: "rgba(255,255,255,0.05)" }} /><Bar dataKey="count" radius={[6, 6, 0, 0]} animationDuration={800}>{sevData.map((e, i) => <Cell key={i} fill={e.fill} />)}</Bar></BarChart></ResponsiveContainer></div>
           </motion.div>
-
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="glass-card p-5">
             <h3 className="font-display font-semibold text-foreground mb-4">Status Breakdown</h3>
-            <div className="relative h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={statusData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={3} dataKey="value" animationDuration={800}>
-                    {statusData.map((e, i) => <PieCell key={i} fill={e.color} stroke="transparent" />)}
-                  </Pie>
-                  <Tooltip content={<GlassTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="text-center">
-                  <span className="text-2xl font-bold text-foreground">{incidents.length}</span>
-                  <br /><span className="text-[10px] text-muted-foreground">Total</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-center gap-4 mt-2">
-              {statusData.map((s) => (
-                <div key={s.name} className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: s.color }} />
-                  <span className="text-[11px] text-muted-foreground">{s.name}</span>
-                </div>
-              ))}
-            </div>
+            <div className="relative h-48"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={statusData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={3} dataKey="value" animationDuration={800}>{statusData.map((e, i) => <PieCell key={i} fill={e.color} stroke="transparent" />)}</Pie><Tooltip content={<GlassTooltip />} /></PieChart></ResponsiveContainer><div className="absolute inset-0 flex items-center justify-center pointer-events-none"><div className="text-center"><span className="text-2xl font-bold text-foreground">{incidents.length}</span><br /><span className="text-[10px] text-muted-foreground">Total</span></div></div></div>
+            <div className="flex justify-center gap-4 mt-2">{statusData.map((s) => (<div key={s.name} className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full" style={{ background: s.color }} /><span className="text-[11px] text-muted-foreground">{s.name}</span></div>))}</div>
           </motion.div>
         </div>
       )}
 
-      {/* Data Table */}
       {incidents.length === 0 ? (
-        <div className="glass-card p-12 text-center">
-          <FileWarning className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="font-display font-semibold text-foreground">No incidents reported</h3>
-          <p className="text-muted-foreground text-sm mt-1">Report incidents as they occur to track and resolve them</p>
-        </div>
+        <div className="glass-card p-12 text-center"><FileWarning className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><h3 className="font-display font-semibold text-foreground">No incidents reported</h3><p className="text-muted-foreground text-sm mt-1">Report incidents as they occur to track and resolve them</p></div>
       ) : (
         <div className="glass-card overflow-hidden">
           <table className="w-full glass-table">
-            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Incident</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Severity</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Assigned To</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Deadline</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th><th className="px-4 py-3"></th></tr></thead>
+            <thead><tr className="border-b" style={{ borderColor: "var(--glass-border)" }}><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Incident</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Severity</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Assigned To</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Deadline</th><th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th><th className="w-12 px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Action</th></tr></thead>
             <tbody>
               {incidents.map((inc) => (
-                <tr key={inc.id} className="border-b last:border-0 transition-colors" style={{ borderColor: "var(--glass-border)" }}>
+                <tr key={inc.id} className="border-b last:border-0 transition-colors hover:bg-white/[0.02]" style={{ borderColor: "var(--glass-border)" }}>
                   <td className="px-4 py-3"><p className="text-sm font-medium text-foreground">{inc.name}</p><p className="text-xs text-muted-foreground">{inc.department}</p></td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{inc.type}</td>
                   <td className="px-4 py-3"><SeverityBadge severity={inc.severity} /></td>
@@ -187,16 +124,15 @@ export default function IncidentsPage() {
                   <td className="px-4 py-3 text-sm text-muted-foreground">{inc.deadline ? new Date(inc.deadline).toLocaleDateString() : "—"}</td>
                   <td className="px-4 py-3"><StatusBadge status={inc.status} /></td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(inc)} className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild><button className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-severity-high transition-colors"><Trash2 className="w-3.5 h-3.5" /></button></AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader><AlertDialogTitle>Delete Incident?</AlertDialogTitle><AlertDialogDescription>This will permanently delete "{inc.name}". This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
-                          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => deleteItem("incidents", inc.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild><button className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"><MoreHorizontal className="w-4 h-4" /></button></DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => openEdit(inc)}><Pencil className="w-4 h-4 mr-2" /> Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleArchive(inc)}><Archive className="w-4 h-4 mr-2" /> Archive</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => setDeleteTarget(inc)} className="text-destructive focus:text-destructive"><Trash2 className="w-4 h-4 mr-2" /> Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </td>
                 </tr>
               ))}

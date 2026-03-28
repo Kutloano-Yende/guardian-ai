@@ -140,6 +140,7 @@ export function GRCProvider({ children }: { children: ReactNode }) {
       ...prev,
       [collection]: (prev[collection] as any[]).filter((item: any) => item.id !== id),
     }));
+    toast.success("Deleted successfully");
   }, [user]);
 
   const getLinkedItems: GRCContextType["getLinkedItems"] = useCallback((type, id) => {
