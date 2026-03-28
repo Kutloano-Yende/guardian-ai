@@ -99,6 +99,7 @@ export default function AssetsPage() {
               <div><Label className="text-white">Owner</Label><Input required value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} /></div>
               <div><Label className="text-white">Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
               <div><Label className="text-white">Criticality</Label><Select value={form.criticality} onValueChange={(v) => setForm({ ...form, criticality: v as Asset["criticality"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
+              <div><Label className="text-white">Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as Asset["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="maintenance">Maintenance</SelectItem><SelectItem value="retired">Retired</SelectItem></SelectContent></Select></div>
             </div>
             <button type="submit" className="glass-btn-primary">{editingId ? "Save Changes" : "Create Asset"}</button>
           </form>

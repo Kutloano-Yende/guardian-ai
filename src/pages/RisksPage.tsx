@@ -91,7 +91,10 @@ export default function RisksPage() {
               <div><Label className="text-white">Impact (1-5)</Label><Input type="number" min={1} max={5} value={form.impact} onChange={(e) => setForm({ ...form, impact: +e.target.value })} /></div>
             </div>
             <div><Label className="text-white">Mitigation Strategy</Label><Textarea value={form.mitigationStrategy} onChange={(e) => setForm({ ...form, mitigationStrategy: e.target.value })} /></div>
-            <div><Label className="text-white">Regulatory Reference</Label><Input placeholder="e.g., POPIA Section 19" value={form.regulatoryRef} onChange={(e) => setForm({ ...form, regulatoryRef: e.target.value })} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label className="text-white">Regulatory Reference</Label><Input placeholder="e.g., POPIA Section 19" value={form.regulatoryRef} onChange={(e) => setForm({ ...form, regulatoryRef: e.target.value })} /></div>
+              <div><Label className="text-white">Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as Risk["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="open">Open</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="resolved">Resolved</SelectItem><SelectItem value="closed">Closed</SelectItem></SelectContent></Select></div>
+            </div>
             <button type="submit" className="glass-btn-primary">{editingId ? "Save Changes" : "Create Risk"}</button>
           </form>
         </DialogContent>
